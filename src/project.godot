@@ -19,6 +19,10 @@ run/main_scene="uid://doskk84mnhng2"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+PuzzleGen="*uid://5mdvvj3yt22j"
+
 [input]
 
 interact={

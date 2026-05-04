@@ -1,4 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://bmddekbyom6tx"]
+[gd_scene format=3 uid="uid://bmddekbyom6tx"]
+
+[ext_resource type="Script" uid="uid://dghfh17ggehop" path="res://Scripts/Puzzles/FuseBox3x3.gd" id="1_8v5rs"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_box"]
 size = Vector3(0.5, 0.5, 0.1)
@@ -15,98 +17,99 @@ size = Vector3(0.08, 0.08, 0.04)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fuse"]
 albedo_color = Color(0.3, 0.3, 0.3, 1)
 
-[node name="FuseBox3x3" type="Node3D"]
+[node name="FuseBox3x3" type="Node3D" unique_id=1114413439]
+script = ExtResource("1_8v5rs")
 
-[node name="BoxMesh" type="MeshInstance3D" parent="."]
+[node name="BoxMesh" type="MeshInstance3D" parent="." unique_id=1394228818]
 mesh = SubResource("BoxMesh_box")
 surface_material_override/0 = SubResource("StandardMaterial3D_box")
 
-[node name="Fuse_0_0" type="StaticBody3D" parent="."]
+[node name="Fuse_0_0" type="StaticBody3D" parent="." unique_id=1538285916]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_0"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_0" unique_id=578948034]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_0"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_0" unique_id=224575922]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_1_0" type="StaticBody3D" parent="."]
+[node name="Fuse_1_0" type="StaticBody3D" parent="." unique_id=954676172]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_0"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_0" unique_id=769340413]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_0"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_0" unique_id=450199712]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_2_0" type="StaticBody3D" parent="."]
+[node name="Fuse_2_0" type="StaticBody3D" parent="." unique_id=1941216541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_0"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_0" unique_id=1320510847]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_0"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_0" unique_id=1057990662]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_0_1" type="StaticBody3D" parent="."]
+[node name="Fuse_0_1" type="StaticBody3D" parent="." unique_id=1566399135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_1" unique_id=942158542]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_1" unique_id=607870362]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_1_1" type="StaticBody3D" parent="."]
+[node name="Fuse_1_1" type="StaticBody3D" parent="." unique_id=969118443]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_1" unique_id=1359766351]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_1" unique_id=655560510]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_2_1" type="StaticBody3D" parent="."]
+[node name="Fuse_2_1" type="StaticBody3D" parent="." unique_id=1316685213]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_1" unique_id=472943124]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_1" unique_id=1761865123]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_0_2" type="StaticBody3D" parent="."]
+[node name="Fuse_0_2" type="StaticBody3D" parent="." unique_id=1750950489]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, -0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_0_2" unique_id=472860627]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_0_2" unique_id=1163247501]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_1_2" type="StaticBody3D" parent="."]
+[node name="Fuse_1_2" type="StaticBody3D" parent="." unique_id=246411765]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_1_2" unique_id=699722488]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_1_2" unique_id=1144501583]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")
 
-[node name="Fuse_2_2" type="StaticBody3D" parent="."]
+[node name="Fuse_2_2" type="StaticBody3D" parent="." unique_id=1577645198]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.15, 0.05)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fuse_2_2" unique_id=1156899995]
 shape = SubResource("BoxShape3D_fuse")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fuse_2_2" unique_id=1630506538]
 mesh = SubResource("BoxMesh_fuse")
 surface_material_override/0 = SubResource("StandardMaterial3D_fuse")

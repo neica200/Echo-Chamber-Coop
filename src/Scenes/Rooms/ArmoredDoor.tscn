@@ -1,0 +1,57 @@
+[gd_scene load_steps=8 format=3 uid="uid://eay203w4v5u6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(2, 3, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
+albedo_color = Color(0.2, 0.4, 0.5, 1)
+metallic = 0.8
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+material = SubResource("StandardMaterial3D_door")
+size = Vector3(2, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_side"]
+size = Vector3(0.2, 3, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+metallic = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_top"]
+size = Vector3(2.2, 0.2, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_handle"]
+size = Vector3(0.4, 0.1, 0.1)
+
+[node name="ArmoredDoor" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_door")
+
+[node name="DoorMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("StandardMaterial3D_door")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.5, 0)
+mesh = SubResource("BoxMesh_frame_side")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="FrameRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.5, 0)
+mesh = SubResource("BoxMesh_frame_side")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="FrameTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+mesh = SubResource("BoxMesh_frame_top")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 1.5, 0.15)
+mesh = SubResource("BoxMesh_handle")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")

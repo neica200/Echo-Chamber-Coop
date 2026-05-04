@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3 uid="uid://f1w4v5u6t7s8"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_safe"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_safe"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+metallic = 1.0
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_safe"]
+material = SubResource("StandardMaterial3D_safe")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dial"]
+top_radius = 0.15
+bottom_radius = 0.15
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dial"]
+albedo_color = Color(0.8, 0.8, 0.8, 1)
+metallic = 1.0
+roughness = 0.2
+
+[node name="Safe" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("BoxShape3D_safe")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+mesh = SubResource("BoxMesh_safe")
+surface_material_override/0 = SubResource("StandardMaterial3D_safe")
+
+[node name="DialMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.2, 0.7, 0.65)
+mesh = SubResource("CylinderMesh_dial")
+surface_material_override/0 = SubResource("StandardMaterial3D_dial")

@@ -1,0 +1,61 @@
+[gd_scene load_steps=7 format=3 uid="uid://cpcrbjk37bjdd"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tabletop"]
+size = Vector3(2, 0.1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.25, 0.2, 0.15, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_top"]
+material = SubResource("StandardMaterial3D_wood")
+size = Vector3(2, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_leg"]
+size = Vector3(0.1, 0.9, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+metallic = 0.8
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_leg"]
+material = SubResource("StandardMaterial3D_metal")
+size = Vector3(0.1, 0.9, 0.1)
+
+[node name="Table" type="StaticBody3D"]
+
+[node name="TopCol" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+shape = SubResource("BoxShape3D_tabletop")
+
+[node name="TopMesh" type="MeshInstance3D" parent="TopCol"]
+mesh = SubResource("BoxMesh_top")
+
+[node name="Leg1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.45, -0.4)
+shape = SubResource("BoxShape3D_leg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg1"]
+mesh = SubResource("BoxMesh_leg")
+
+[node name="Leg2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.45, -0.4)
+shape = SubResource("BoxShape3D_leg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg2"]
+mesh = SubResource("BoxMesh_leg")
+
+[node name="Leg3" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.45, 0.4)
+shape = SubResource("BoxShape3D_leg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg3"]
+mesh = SubResource("BoxMesh_leg")
+
+[node name="Leg4" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.45, 0.4)
+shape = SubResource("BoxShape3D_leg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg4"]
+mesh = SubResource("BoxMesh_leg")

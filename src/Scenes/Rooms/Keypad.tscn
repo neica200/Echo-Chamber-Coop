@@ -1,0 +1,53 @@
+[gd_scene load_steps=8 format=3 uid="uid://dyvbyf1d4g1oo"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_keypad"]
+size = Vector3(0.3, 0.4, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(0.3, 0.4, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_screen"]
+size = Vector3(0.2, 0.08, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_screen"]
+albedo_color = Color(0, 0.5, 0, 1)
+emission_enabled = true
+emission = Color(0, 0.8, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_button"]
+size = Vector3(0.06, 0.06, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_button"]
+albedo_color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Keypad" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_keypad")
+
+[node name="BaseMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_base")
+
+[node name="ScreenMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0.03)
+mesh = SubResource("BoxMesh_screen")
+surface_material_override/0 = SubResource("StandardMaterial3D_screen")
+
+[node name="Button1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0, 0.03)
+mesh = SubResource("BoxMesh_button")
+surface_material_override/0 = SubResource("StandardMaterial3D_button")
+
+[node name="Button2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
+mesh = SubResource("BoxMesh_button")
+surface_material_override/0 = SubResource("StandardMaterial3D_button")
+
+[node name="Button3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, 0, 0.03)
+mesh = SubResource("BoxMesh_button")
+surface_material_override/0 = SubResource("StandardMaterial3D_button")

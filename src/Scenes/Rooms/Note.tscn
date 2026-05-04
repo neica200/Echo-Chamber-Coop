@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://note_uid"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_note"]
+size = Vector3(0.21, 0.01, 0.297)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_note"]
+size = Vector2(0.21, 0.297)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_note"]
+albedo_color = Color(0.9, 0.9, 0.85, 1)
+
+[node name="Note" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_note")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_note")
+surface_material_override/0 = SubResource("StandardMaterial3D_note")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.006, 0)
+pixel_size = 0.001
+modulate = Color(0, 0, 0, 1)
+text = "????"
+font_size = 32
+outline_size = 0

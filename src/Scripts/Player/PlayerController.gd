@@ -13,6 +13,21 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 func _ready():
 	# Ascunde și blochează mouse-ul în centrul ecranului la pornire
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	
+	# Asigură-te că raza e mereu pornită și bate 10 metri în față (pe axa Z negativă)
+	interaction_ray.enabled = true
+	interaction_ray.target_position = Vector3(0, 0, -10)
+	interaction_ray.collide_with_areas = true # <--- Asta ne lasă să lovim și Area3D!
+	interaction_ray.add_exception(self) # Ignoră propriul corp ca să nu se lovească de sine
+
+	# Creează un mic punct alb pe centrul ecranului (ținta) ca să știi unde te uiți
+	var crosshair = ColorRect.new()
+	crosshair.custom_minimum_size = Vector2(4, 4)
+	crosshair.color = Color.WHITE
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.add_child(crosshair)
+	add_child(center)
 
 func _unhandled_input(event):
 	# Mișcarea camerei din mouse
@@ -52,9 +67,14 @@ func _physics_process(delta):
 		check_interaction()
 
 func check_interaction():
+	interaction_ray.force_raycast_update()
 	if interaction_ray.is_colliding():
 		var target = interaction_ray.get_collider()
+		print("Raza a lovit: ", target.name)
+		
 		# Verificăm dacă obiectul cu care ne uităm are o funcție de interact() atașată
 		if target.has_method("interact"):
 			target.interact()
 			print("Ai dat click pe: ", target.name)
+	else:
+		print("Raza (de 10m) nu a lovit nimic! Verifică Debug -> Visible Collision Shapes.")

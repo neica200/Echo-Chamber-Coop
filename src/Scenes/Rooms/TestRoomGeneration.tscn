@@ -1,0 +1,50 @@
+[gd_scene load_steps=20 format=3 uid="uid://bibkk664ios6v"]
+
+[ext_resource type="Script" path="res://Scripts/Agents/RoomGeneratorAgent.gd" id="1_rg"]
+[ext_resource type="PackedScene" uid="uid://c8x1y203w4v5" path="res://Scenes/Rooms/Wall.tscn" id="2_wall"]
+[ext_resource type="PackedScene" uid="uid://eay203w4v5u6" path="res://Scenes/Rooms/ArmoredDoor.tscn" id="3_door"]
+[ext_resource type="PackedScene" uid="uid://e003w4v5u6t7" path="res://Scenes/Rooms/Screen.tscn" id="4_screen"]
+[ext_resource type="PackedScene" uid="uid://f1w4v5u6t7s8" path="res://Scenes/Rooms/Safe.tscn" id="5_safe"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Floor.tscn" id="6_floor"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Table.tscn" id="7_table"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Chair.tscn" id="8_chair"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/CeilingLight.tscn" id="9_light"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Pedestal.tscn" id="10_pedestal"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Numpad.tscn" id="11_numpad"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Terminal.tscn" id="12_terminal"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Note.tscn" id="13_note"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/ColorHintBoard.tscn" id="14_chint"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/ColorButtonsPanel.tscn" id="15_cbtn"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/MatrixMonitor.tscn" id="16_mmon"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/FuseBox3x3.tscn" id="17_fuse"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Book.tscn" id="18_book"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Mug.tscn" id="19_mug"]
+
+[node name="TestRoomGeneration" type="Node3D"]
+script = ExtResource("1_rg")
+wall_scene = ExtResource("2_wall")
+door_scene = ExtResource("3_door")
+screen_scene = ExtResource("4_screen")
+safe_scene = ExtResource("5_safe")
+floor_scene = ExtResource("6_floor")
+table_scene = ExtResource("7_table")
+chair_scene = ExtResource("8_chair")
+ceiling_light_scene = ExtResource("9_light")
+pedestal_scene = ExtResource("10_pedestal")
+numpad_scene = ExtResource("11_numpad")
+terminal_scene = ExtResource("12_terminal")
+note_scene = ExtResource("13_note")
+color_hint_scene = ExtResource("14_chint")
+color_btn_scene = ExtResource("15_cbtn")
+matrix_monitor_scene = ExtResource("16_mmon")
+fuse_box_scene = ExtResource("17_fuse")
+book_scene = ExtResource("18_book")
+mug_scene = ExtResource("19_mug")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+light_energy = 0.5
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 6, 20, 25)

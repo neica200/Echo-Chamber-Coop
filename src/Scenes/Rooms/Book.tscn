@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://book_uid"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_book"]
+size = Vector3(0.2, 0.05, 0.25)
+
+[sub_resource type="BoxMesh" id="BoxMesh_book"]
+size = Vector3(0.2, 0.05, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_book"]
+albedo_color = Color(0.6, 0.2, 0.2, 1)
+
+[node name="Book" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_book")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_book")
+surface_material_override/0 = SubResource("StandardMaterial3D_book")

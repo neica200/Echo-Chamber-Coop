@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://e003w4v5u6t7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_screen"]
+size = Vector3(1.5, 1, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_screen"]
+albedo_color = Color(0, 0.1, 0.3, 1)
+emission_enabled = true
+emission = Color(0, 0.5, 1, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_screen"]
+material = SubResource("StandardMaterial3D_screen")
+size = Vector3(1.5, 1, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(1.7, 1.2, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.15, 0.15, 0.15, 1)
+metallic = 0.8
+roughness = 0.4
+
+[node name="Screen" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_screen")
+
+[node name="ScreenMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.05)
+mesh = SubResource("BoxMesh_screen")
+surface_material_override/0 = SubResource("StandardMaterial3D_screen")
+
+[node name="FrameMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.05)
+mesh = SubResource("BoxMesh_frame")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")

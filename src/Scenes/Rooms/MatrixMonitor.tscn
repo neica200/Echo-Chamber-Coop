@@ -1,4 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://u0utv0wlxke3"]
+[gd_scene format=3 uid="uid://u0utv0wlxke3"]
+
+[ext_resource type="Script" uid="uid://4l3x185xltxa" path="res://Scripts/Puzzles/MatrixMonitor.gd" id="1_fh6ag"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_monitor"]
 size = Vector3(0.5, 0.5, 0.1)
@@ -14,53 +16,54 @@ albedo_color = Color(0, 0.2, 0, 1)
 emission_enabled = true
 emission = Color(0, 0.2, 0, 1)
 
-[node name="MatrixMonitor" type="Node3D"]
+[node name="MatrixMonitor" type="Node3D" unique_id=807101864]
+script = ExtResource("1_fh6ag")
 
-[node name="MonitorMesh" type="MeshInstance3D" parent="."]
+[node name="MonitorMesh" type="MeshInstance3D" parent="." unique_id=1764142917]
 mesh = SubResource("BoxMesh_monitor")
 surface_material_override/0 = SubResource("StandardMaterial3D_monitor")
 
-[node name="Grid_0_0" type="MeshInstance3D" parent="."]
+[node name="Grid_0_0" type="MeshInstance3D" parent="." unique_id=97303882]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.15, 0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_1_0" type="MeshInstance3D" parent="."]
+[node name="Grid_1_0" type="MeshInstance3D" parent="." unique_id=677456922]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_2_0" type="MeshInstance3D" parent="."]
+[node name="Grid_2_0" type="MeshInstance3D" parent="." unique_id=1504700457]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.15, 0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_0_1" type="MeshInstance3D" parent="."]
+[node name="Grid_0_1" type="MeshInstance3D" parent="." unique_id=2004478540]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.15, 0, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_1_1" type="MeshInstance3D" parent="."]
+[node name="Grid_1_1" type="MeshInstance3D" parent="." unique_id=855161384]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_2_1" type="MeshInstance3D" parent="."]
+[node name="Grid_2_1" type="MeshInstance3D" parent="." unique_id=261786852]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.15, 0, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_0_2" type="MeshInstance3D" parent="."]
+[node name="Grid_0_2" type="MeshInstance3D" parent="." unique_id=1854072464]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.15, -0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_1_2" type="MeshInstance3D" parent="."]
+[node name="Grid_1_2" type="MeshInstance3D" parent="." unique_id=1098816024]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")
 
-[node name="Grid_2_2" type="MeshInstance3D" parent="."]
+[node name="Grid_2_2" type="MeshInstance3D" parent="." unique_id=145399190]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.15, -0.15, 0.051)
 mesh = SubResource("PlaneMesh_grid")
 surface_material_override/0 = SubResource("StandardMaterial3D_grid_off")

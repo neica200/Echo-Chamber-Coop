@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://colorhint_uid"]
+[gd_scene format=3 uid="uid://cjsiyixwuh6vl"]
+
+[ext_resource type="Script" uid="uid://du87uew2mf6fi" path="res://Scripts/Puzzles/ColorHintBoard.gd" id="1_67h1i"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_board"]
 size = Vector3(0.6, 0.2, 0.05)
@@ -14,28 +16,29 @@ height = 0.02
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bulb_off"]
 albedo_color = Color(0.3, 0.3, 0.3, 1)
 
-[node name="ColorHintBoard" type="Node3D"]
+[node name="ColorHintBoard" type="Node3D" unique_id=338972704]
+script = ExtResource("1_67h1i")
 
-[node name="BoardMesh" type="MeshInstance3D" parent="."]
+[node name="BoardMesh" type="MeshInstance3D" parent="." unique_id=742673577]
 mesh = SubResource("BoxMesh_board")
 surface_material_override/0 = SubResource("StandardMaterial3D_board")
 
-[node name="Bulb_1" type="MeshInstance3D" parent="."]
+[node name="Bulb_1" type="MeshInstance3D" parent="." unique_id=1688770885]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.2, 0, 0.03)
 mesh = SubResource("CylinderMesh_bulb")
 surface_material_override/0 = SubResource("StandardMaterial3D_bulb_off")
 
-[node name="Bulb_2" type="MeshInstance3D" parent="."]
+[node name="Bulb_2" type="MeshInstance3D" parent="." unique_id=1857256837]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.066, 0, 0.03)
 mesh = SubResource("CylinderMesh_bulb")
 surface_material_override/0 = SubResource("StandardMaterial3D_bulb_off")
 
-[node name="Bulb_3" type="MeshInstance3D" parent="."]
+[node name="Bulb_3" type="MeshInstance3D" parent="." unique_id=1406250306]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.066, 0, 0.03)
 mesh = SubResource("CylinderMesh_bulb")
 surface_material_override/0 = SubResource("StandardMaterial3D_bulb_off")
 
-[node name="Bulb_4" type="MeshInstance3D" parent="."]
+[node name="Bulb_4" type="MeshInstance3D" parent="." unique_id=1976985308]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.2, 0, 0.03)
 mesh = SubResource("CylinderMesh_bulb")
 surface_material_override/0 = SubResource("StandardMaterial3D_bulb_off")

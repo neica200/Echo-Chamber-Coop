@@ -24,20 +24,28 @@ func _ready():
 	var crosshair = ColorRect.new()
 	crosshair.custom_minimum_size = Vector2(4, 4)
 	crosshair.color = Color.WHITE
+	crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE # CA SĂ NU BLOCHEZE MOUSE-UL!
+	
 	var center = CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE # CA SĂ NU BLOCHEZE MOUSE-UL!
+	
 	center.add_child(crosshair)
 	add_child(center)
 
 func _unhandled_input(event):
-	# Mișcarea camerei din mouse
-	if event is InputEventMouseMotion:
+	# Dacă dăm click pe ecran, recapturăm mouse-ul
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		
+	# Mișcarea camerei din mouse are loc doar dacă mouse-ul e capturat (ascuns)
+	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		camera.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
 		# Blocăm camera să nu se dea peste cap
 		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 	
-	# Dacă apeși ESC, eliberezi mouse-ul ca să poți închide jocul
+	# Dacă apeși ESC, eliberezi mouse-ul ca să poți închide jocul sau da click pe altceva
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 

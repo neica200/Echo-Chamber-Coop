@@ -11,7 +11,7 @@ class_name RoomGeneratorAgent
 @export var ceiling_light_scene: PackedScene
 @export var pedestal_scene: PackedScene
 
-# Puzzle Elements
+# Elemente pentru puzzle-uri
 @export var numpad_scene: PackedScene
 @export var terminal_scene: PackedScene
 @export var note_scene: PackedScene
@@ -22,20 +22,169 @@ class_name RoomGeneratorAgent
 @export var book_scene: PackedScene
 @export var mug_scene: PackedScene
 
-# Room properties
+# Proprietățile camerei
 @export var room_size: Vector2 = Vector2(12, 12)
 @export var room_b_offset: Vector3 = Vector3(100, 0, 0)
 
 var room_a_spawn: Marker3D
 var room_b_spawn: Marker3D
 
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
 func _ready() -> void:
 	if not wall_scene:
-		push_error("Wall scene not assigned to RoomGeneratorAgent.")
+		push_error("Scena pentru perete (wall_scene) nu este atribuită în RoomGeneratorAgent.")
 		return
 		
+	# Inițializăm cu un seed fix pentru testare. Pe viitor, acesta va fi primit de la NetworkManager.
+	generate_rooms(12345)
+
+func generate_rooms(seed_value: int) -> void:
+	rng.seed = seed_value
+	print("[RoomGen] Se generează camerele procedural folosind seed-ul: ", seed_value)
+	
 	generate_room_a()
 	generate_room_b()
+
+# Returnează un array de poziții Vector3 sigure, care nu se suprapun, pentru obiectele de pe podea
+func get_available_grid_positions() -> Array[Vector3]:
+	var positions: Array[Vector3] = []
+	# Folosim o grilă de 2x2, de la x=2 la x=10 și z=2 la z=10
+	for x in range(2, int(room_size.x) - 1, 2):
+		for z in range(2, int(room_size.y) - 1, 2):
+			positions.append(Vector3(x, 0, z))
+	return positions
+
+# Returnează un array de dicționare cu transformări (poziție, rotație) pentru plasarea pe pereți
+# Formatul returnat: {"pos": Vector3, "rot": Vector3}
+func get_available_wall_slots() -> Array[Dictionary]:
+	var slots: Array[Dictionary] = []
+	var spacing = 2.0
+	var inset = 0.26 # Half wall thickness + small margin
+	
+	# Wall z=0 (North)
+	for x in range(2, int(room_size.x) - 1, int(spacing)):
+		slots.append({"pos": Vector3(x, 1.5, inset), "rot": Vector3(0, 0, 0)})
+	# Wall z=room_size.y (South)
+	for x in range(2, int(room_size.x) - 1, int(spacing)):
+		slots.append({"pos": Vector3(x, 1.5, room_size.y - inset), "rot": Vector3(0, 180, 0)})
+	# Wall x=0 (West)
+	for z in range(2, int(room_size.y) - 1, int(spacing)):
+		slots.append({"pos": Vector3(inset, 1.5, z), "rot": Vector3(0, 90, 0)})
+	# Wall x=room_size.x (East)
+	for z in range(2, int(room_size.y) - 1, int(spacing)):
+		slots.append({"pos": Vector3(room_size.x - inset, 1.5, z), "rot": Vector3(0, -90, 0)})
+		
+	return slots
+
+# Funcție utilitară pentru a plasa un obiect pe un slot de perete
+func place_on_wall(parent: Node3D, scene: PackedScene, slots: Array[Dictionary], remove_slot: bool = true) -> Node3D:
+	if not scene or slots.is_empty(): return null
+	
+	var slot_index = rng.randi_range(0, slots.size() - 1)
+	var slot = slots[slot_index]
+	if remove_slot:
+		slots.remove_at(slot_index)
+		
+	var instance = scene.instantiate()
+	parent.add_child(instance)
+	instance.position = slot["pos"]
+	instance.rotation_degrees = slot["rot"]
+	return instance
+
+# Funcție utilitară pentru a plasa un obiect pe grila podelei
+func place_on_floor(parent: Node3D, scene: PackedScene, positions: Array[Vector3], remove_pos: bool = true) -> Node3D:
+	if not scene or positions.is_empty(): return null
+	
+	var pos_index = rng.randi_range(0, positions.size() - 1)
+	var pos = positions[pos_index]
+	if remove_pos:
+		positions.remove_at(pos_index)
+		
+	var instance = scene.instantiate()
+	parent.add_child(instance)
+	instance.position = pos
+	
+	# Rotim aleatoriu pe axa Y pentru varietate (în pași de 90 de grade)
+	instance.rotation_degrees.y = rng.randi_range(0, 3) * 90.0
+	
+	return instance
+
+# Plasează setul de mobilă (Birou) cu toate obiectele atașate
+func place_table_set(parent: Node3D, grid: Array[Vector3]) -> void:
+	if not table_scene or grid.is_empty(): return
+	
+	var pos_index = rng.randi_range(0, grid.size() - 1)
+	var table_pos = grid[pos_index]
+	grid.remove_at(pos_index)
+	
+	var table = table_scene.instantiate()
+	parent.add_child(table)
+	table.position = table_pos
+	
+	var table_rot = rng.randi_range(0, 3) * 90.0
+	table.rotation_degrees.y = table_rot
+	
+	# Plasăm scaunul relativ față de birou
+	if chair_scene:
+		var chair = chair_scene.instantiate()
+		parent.add_child(chair)
+		var offset = Vector3(0, 0, 1.2).rotated(Vector3.UP, deg_to_rad(table_rot))
+		chair.position = table_pos + offset
+		chair.rotation_degrees.y = table_rot - 180 # Scaunul privește spre birou
+		
+	# Adăugăm obiectele de puzzle ca noduri copil ale biroului (Sistem de Socket)
+	if terminal_scene:
+		var terminal = terminal_scene.instantiate()
+		table.add_child(terminal)
+		terminal.position = Vector3(-0.4, 1.0, 0)
+		
+	if note_scene:
+		var note = note_scene.instantiate()
+		table.add_child(note)
+		note.position = Vector3(0.3, 1.01, 0.2)
+		
+	if matrix_monitor_scene:
+		var monitor = matrix_monitor_scene.instantiate()
+		table.add_child(monitor)
+		monitor.position = Vector3(0.6, 1.25, -0.2)
+		
+	if mug_scene:
+		var mug = mug_scene.instantiate()
+		table.add_child(mug)
+		mug.position = Vector3(-0.8, 1.075, 0.3)
+		
+	if book_scene:
+		var book = book_scene.instantiate()
+		table.add_child(book)
+		book.position = Vector3(-0.3, 1.025, 0.3)
+		book.rotation_degrees.y = rng.randf_range(-30, 30)
+
+# Plasează setul de mobilă (Piedestal) cu toate obiectele atașate
+func place_pedestal_set(parent: Node3D, grid: Array[Vector3]) -> void:
+	if not pedestal_scene or grid.is_empty(): return
+	
+	var pos_index = rng.randi_range(0, grid.size() - 1)
+	var ped_pos = grid[pos_index]
+	grid.remove_at(pos_index)
+	
+	var pedestal = pedestal_scene.instantiate()
+	parent.add_child(pedestal)
+	pedestal.position = ped_pos
+	
+	# Adăugăm biletul pe piedestal
+	if note_scene:
+		var note = note_scene.instantiate()
+		pedestal.add_child(note)
+		note.position = Vector3(0, 1.01, 0)
+		
+	# Împrăștiem cărți în jurul piedestalului
+	if book_scene:
+		for i in range(2):
+			var book = book_scene.instantiate()
+			pedestal.add_child(book)
+			book.position = Vector3(rng.randf_range(-1.0, 1.0), 0.025, rng.randf_range(-1.0, 1.0))
+			book.rotation_degrees.y = rng.randf_range(0, 360)
 
 func generate_room_a() -> void:
 	var room_a_root = Node3D.new()
@@ -44,9 +193,13 @@ func generate_room_a() -> void:
 	
 	build_walls_and_floor(room_a_root)
 	
+	var grid = get_available_grid_positions()
+	var wall_slots = get_available_wall_slots()
+	
+	# Punctul de spawn pentru Jucătorul 1
 	room_a_spawn = Marker3D.new()
 	room_a_spawn.name = "SpawnPlayer1"
-	room_a_spawn.position = Vector3(room_size.x / 2.0, 1.0, room_size.y / 2.0 + 3.0)
+	room_a_spawn.position = Vector3(room_size.x / 2.0, 1.0, room_size.y / 2.0)
 	room_a_root.add_child(room_a_spawn)
 	
 	if ceiling_light_scene:
@@ -54,54 +207,11 @@ func generate_room_a() -> void:
 		room_a_root.add_child(light)
 		light.position = Vector3(room_size.x / 2.0, 3.0, room_size.y / 2.0)
 		
-	if table_scene:
-		var table = table_scene.instantiate()
-		room_a_root.add_child(table)
-		table.position = Vector3(room_size.x / 2.0, 0, room_size.y / 2.0)
-		
-		# Terminal
-		if terminal_scene:
-			var terminal = terminal_scene.instantiate()
-			room_a_root.add_child(terminal)
-			terminal.position = Vector3(room_size.x / 2.0 - 0.5, 1.0, room_size.y / 2.0)
-			
-		# Note with Label
-		if note_scene:
-			var note = note_scene.instantiate()
-			room_a_root.add_child(note)
-			note.position = Vector3(room_size.x / 2.0 + 0.3, 1.01, room_size.y / 2.0 + 0.2)
-			
-		# Matrix Monitor
-		if matrix_monitor_scene:
-			var monitor = matrix_monitor_scene.instantiate()
-			room_a_root.add_child(monitor)
-			monitor.position = Vector3(room_size.x / 2.0 + 0.6, 1.25, room_size.y / 2.0 - 0.2)
-			
-		# Mugs & Books on table
-		if mug_scene:
-			var mug1 = mug_scene.instantiate()
-			room_a_root.add_child(mug1)
-			mug1.position = Vector3(room_size.x / 2.0 - 0.8, 1.075, room_size.y / 2.0 + 0.3)
-		if book_scene:
-			var book1 = book_scene.instantiate()
-			room_a_root.add_child(book1)
-			book1.position = Vector3(room_size.x / 2.0 - 0.4, 1.025, room_size.y / 2.0 + 0.3)
-			book1.rotation_degrees = Vector3(0, 15, 0)
-			var book2 = book_scene.instantiate()
-			room_a_root.add_child(book2)
-			book2.position = Vector3(room_size.x / 2.0 - 0.4, 1.075, room_size.y / 2.0 + 0.3)
-			book2.rotation_degrees = Vector3(0, -5, 0)
-		
-	if chair_scene:
-		var chair = chair_scene.instantiate()
-		room_a_root.add_child(chair)
-		chair.position = Vector3(room_size.x / 2.0, 0, room_size.y / 2.0 - 1.0)
+	# Plasăm biroul, scaunul și obiectele direct conectate
+	place_table_set(room_a_root, grid)
 	
-	if color_hint_scene:
-		var hint = color_hint_scene.instantiate()
-		room_a_root.add_child(hint)
-		hint.position = Vector3(0.5, 1.5, room_size.y / 2.0)
-		hint.rotation_degrees = Vector3(0, 90, 0)
+	# Plasăm elementele de pe pereți
+	place_on_wall(room_a_root, color_hint_scene, wall_slots)
 
 func generate_room_b() -> void:
 	var room_b_root = Node3D.new()
@@ -111,9 +221,13 @@ func generate_room_b() -> void:
 	
 	build_walls_and_floor(room_b_root)
 	
+	var grid = get_available_grid_positions()
+	var wall_slots = get_available_wall_slots()
+	
+	# Punctul de spawn pentru Jucătorul 2
 	room_b_spawn = Marker3D.new()
 	room_b_spawn.name = "SpawnPlayer2"
-	room_b_spawn.position = Vector3(room_size.x / 2.0, 1.0, room_size.y / 2.0 + 3.0)
+	room_b_spawn.position = Vector3(room_size.x / 2.0, 1.0, room_size.y / 2.0)
 	room_b_root.add_child(room_b_spawn)
 	
 	if ceiling_light_scene:
@@ -121,58 +235,29 @@ func generate_room_b() -> void:
 		room_b_root.add_child(light)
 		light.position = Vector3(room_size.x / 2.0, 3.0, room_size.y / 2.0)
 		
-	if pedestal_scene:
-		var pedestal = pedestal_scene.instantiate()
-		room_b_root.add_child(pedestal)
-		pedestal.position = Vector3(room_size.x / 2.0, 0, room_size.y / 2.0)
+	# Plasăm piedestalul și obiectele sale
+	place_pedestal_set(room_b_root, grid)
+	
+	# Plasăm seiful pe un loc liber de pe podea
+	place_on_floor(room_b_root, safe_scene, grid)
+	
+	# Plasăm mecanismele de puzzle pe pereți
+	place_on_wall(room_b_root, numpad_scene, wall_slots)
+	place_on_wall(room_b_root, fuse_box_scene, wall_slots)
+	place_on_wall(room_b_root, color_btn_scene, wall_slots)
+	
+	# Cazul special pentru ușă: se plasează la nivelul solului (y=0) dar pe un slot de perete
+	if door_scene and wall_slots.size() > 0:
+		var slot_index = rng.randi_range(0, wall_slots.size() - 1)
+		var slot = wall_slots[slot_index]
+		wall_slots.remove_at(slot_index)
 		
-		# Put note on pedestal
-		if note_scene:
-			var note = note_scene.instantiate()
-			room_b_root.add_child(note)
-			note.position = Vector3(room_size.x / 2.0, 1.01, room_size.y / 2.0)
-			
-		# Scattered books on floor around pedestal
-		if book_scene:
-			var b1 = book_scene.instantiate()
-			room_b_root.add_child(b1)
-			b1.position = Vector3(room_size.x / 2.0 + 1.0, 0.025, room_size.y / 2.0)
-			var b2 = book_scene.instantiate()
-			room_b_root.add_child(b2)
-			b2.position = Vector3(room_size.x / 2.0 - 0.8, 0.025, room_size.y / 2.0 + 0.5)
-	
-	if safe_scene:
-		var safe = safe_scene.instantiate()
-		room_b_root.add_child(safe)
-		safe.position = Vector3(room_size.x / 2.0 + 2.0, 0, room_size.y - 1.5)
-	
-	if door_scene:
 		var door = door_scene.instantiate()
 		room_b_root.add_child(door)
-		door.position = Vector3(room_size.x - 1.0, 0, room_size.y / 2.0)
-		door.rotation_degrees = Vector3(0, 90, 0)
-		
-		# Place Numpad near door
-		if numpad_scene:
-			var numpad = numpad_scene.instantiate()
-			room_b_root.add_child(numpad)
-			numpad.position = Vector3(room_size.x - 0.5, 1.5, room_size.y / 2.0 - 1.5)
-			numpad.rotation_degrees = Vector3(0, 90, 0)
+		door.position = Vector3(round(slot["pos"].x), 0, round(slot["pos"].z))
+		door.rotation_degrees = slot["rot"]
 
-	# Matrix Buttons Panel (FuseBox)
-	if fuse_box_scene:
-		var fusebox = fuse_box_scene.instantiate()
-		room_b_root.add_child(fusebox)
-		fusebox.position = Vector3(0.5, 1.5, room_size.y / 2.0 + 1.5)
-		fusebox.rotation_degrees = Vector3(0, 90, 0)
-
-	# Color Buttons Panel
-	if color_btn_scene:
-		var cbtn = color_btn_scene.instantiate()
-		room_b_root.add_child(cbtn)
-		cbtn.position = Vector3(0.5, 1.5, room_size.y / 2.0 - 1.5)
-		cbtn.rotation_degrees = Vector3(0, 90, 0)
-
+# Construiește podeaua și cei 4 pereți pentru o cameră dată
 func build_walls_and_floor(parent: Node3D) -> void:
 	if floor_scene:
 		var floor_instance = floor_scene.instantiate()

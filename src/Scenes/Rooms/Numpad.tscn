@@ -16,7 +16,7 @@ size = Vector3(0.06, 0.06, 0.02)
 size = Vector3(0.06, 0.06, 0.02)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_btn"]
-albedo_color = Color(0.3, 0.3, 0.3, 1)
+albedo_color = Color(0.8, 0.8, 0.8, 1)
 
 [node name="Numpad" type="Node3D" unique_id=178355345]
 script = ExtResource("1_imbwq")

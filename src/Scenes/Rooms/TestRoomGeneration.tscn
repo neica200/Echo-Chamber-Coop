@@ -13,8 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://brju0u00mct8q" path="res://Scenes/Rooms/Numpad.tscn" id="11_numpad"]
 [ext_resource type="PackedScene" uid="uid://ds3bcdajlf8fe" path="res://Scenes/Rooms/Terminal.tscn" id="12_terminal"]
 [ext_resource type="PackedScene" uid="uid://c2b4nruwm7gdq" path="res://Scenes/Rooms/Note.tscn" id="13_note"]
-[ext_resource type="PackedScene" path="res://Scenes/Rooms/ColorHintBoard.tscn" id="14_chint"]
-[ext_resource type="PackedScene" path="res://Scenes/Rooms/ColorButtonsPanel.tscn" id="15_cbtn"]
+[ext_resource type="PackedScene" uid="uid://cjsiyixwuh6vl" path="res://Scenes/Rooms/ColorHintBoard.tscn" id="14_chint"]
+[ext_resource type="PackedScene" uid="uid://c0kvkkex7kprm" path="res://Scenes/Rooms/ColorButtonsPanel.tscn" id="15_cbtn"]
 [ext_resource type="PackedScene" uid="uid://u0utv0wlxke3" path="res://Scenes/Rooms/MatrixMonitor.tscn" id="16_mmon"]
 [ext_resource type="PackedScene" uid="uid://bmddekbyom6tx" path="res://Scenes/Rooms/FuseBox3x3.tscn" id="17_fuse"]
 [ext_resource type="PackedScene" path="res://Scenes/Rooms/Book.tscn" id="18_book"]
@@ -48,4 +48,4 @@ light_energy = 0.5
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=1748896287 instance=ExtResource("20_q572e")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3888364, 0, 2.2291603)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.5, 6)

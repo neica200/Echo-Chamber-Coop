@@ -36,6 +36,8 @@ func button_pressed(digit: String):
 	if current_input.length() == target_code.length():
 		if current_input == target_code:
 			print("✅ [SUCCESS] SEIFUL A FOST DESCHIS! Ai salvat situația!")
+			if HintAgent:
+				HintAgent.reset_telemetry()
 			# Aici pe viitor vei declanșa o animație de deschidere uși
 		else:
 			print("❌ [ERROR] Parolă greșită! S-a resetat.")

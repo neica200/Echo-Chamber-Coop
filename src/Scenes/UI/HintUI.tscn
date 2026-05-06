@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://hintui_mock"]
+
+[ext_resource type="Script" path="res://Scripts/UI/HintUI.gd" id="1_hint"]
+
+[node name="HintUI" type="CanvasLayer"]
+script = ExtResource("1_hint")
+
+[node name="HintLabel" type="RichTextLabel" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 120.0
+grow_horizontal = 2
+theme_override_colors/default_color = Color(1, 0.8, 0, 1)
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Așteptăm un indiciu...[/center]"
+fit_content = true

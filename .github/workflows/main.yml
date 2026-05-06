@@ -1,0 +1,53 @@
+name: "Echo Chamber CI"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-godot:
+    name: "Godot GUT Tests"
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Template
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates
+          mv /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ || true
+          
+      - name: Run GUT Unit & Stress Tests
+        # Ensure your project has the GUT addon installed in src/addons/gut!
+        run: |
+          cd src
+          godot -d -s addons/gut/gut_cmdln.gd -gdir=res://tests
+
+  test-ai:
+    name: "LLM Evaluator (Mocked)"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: pip install requests
+        
+      - name: Run Evaluator
+        # Note: Running Ollama in a standard GitHub Action requires downloading the model.
+        # This step acts as a placeholder unless attached to a self-hosted runner.
+        run: |
+          echo "Testing AI Evaluator dependencies and imports..."
+          python -c "import requests; import json; print('Dependencies OK')"
+          echo "Run 'python src/tests/evals/hint_evaluator.py' on a machine with Ollama installed to run the AI judge tests."

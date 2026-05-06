@@ -6,6 +6,12 @@
 ## 2. Architecture Map
 
 ### Core Systems & Script Mapping
+*   **Backend Authentication API (New):** A separate Node.js/Express application handling user registration and login via JWT.
+    *   *Path:* `backend/server.js`, `backend/auth/auth.js`
+*   **Frontend Authentication UI (New):** Godot Control node interfacing with the backend REST API.
+    *   *Script:* `src/Scripts/AuthUI.gd`
+*   **Automated Testing Suite (New):** Comprehensive QA architecture including GUT unit/stress tests for game logic and Python scripts for LLM-as-a-Judge evaluations and Backend integration.
+    *   *Path:* `src/tests/`
 *   **Room Generation System:** Procedurally builds the physical space of Room A and Room B, placing modular assets.
     *   *Script:* `src/Scripts/Agents/RoomGeneratorAgent.gd`
 *   **Puzzle Generation System:** The logic engine that creates the dependency graph for puzzles and ensures solvable combinations across rooms.
@@ -21,7 +27,7 @@ The game utilizes a **Peer-to-Peer** architecture via Godot’s `MultiplayerPeer
 ## 3. Agent Logic Breakdown
 1.  **Room Generator Agent:** Architect of the physical space. It procedurally generates a grid-based floor plan and available wall slots to dynamically place furniture and puzzles without overlap. It uses a relative "Socket System" to perfectly parent desk props (monitors, notes, keypads) to specific furniture sets (like the Table in Room A or Pedestal in Room B), ensuring precise and clipping-free layouts driven by a deterministic seed.
 2.  **Puzzle Generator Agent (Asymmetric Logic):** The logic engine. It generates an `active_puzzles` dictionary using a random seed. Each puzzle definition assigns a `clue_room` (where the solution is displayed) and a `lock_room` (where the solution is input).
-3.  **Hint Agent:** The observer. *[Pending Implementation]* Will monitor player telemetry (movement, interaction time). If players are stuck, it pushes subtle cues to the player holding the answer.
+3.  **Hint Agent:** The observer. *[Implemented]* Connects to a local Ollama instance (`llama3:8b`) via HTTP. Automatically tracks player idle time (`time_since_last_progress`) and triggers dynamically after 60 seconds of inactivity, generating contextual hints based on the `PuzzleGeneratorAgent` state. Includes an asynchronous UI fade system.
 4.  **Saboteur Agent:** The tension builder. *[Pending Implementation]* Dynamically triggers glitches like flickering lights or fake clues based on game difficulty to stall progress and build atmosphere.
 
 ## 4. Current State of Development
@@ -31,22 +37,26 @@ The game utilizes a **Peer-to-Peer** architecture via Godot’s `MultiplayerPeer
     *   Foundational `PuzzleGeneratorAgent` that successfully creates the asymmetric data graph (e.g., Numeric codes, Color Sequences, Math Puzzles).
     *   Individual puzzle interaction scripts (Numpad input collection, Note text updating from the generator).
     *   `RoomGeneratorAgent`: Procedurally spawns two distinct rooms using a grid system, dynamic wall slots, and a socket-based relative placement system for furniture.
+    *   **Hint Agent:** Fully automated telemetry triggering, dynamic context prompts, and integrated UI.
+    *   **Automated Testing & CI/CD:** GUT framework implemented for logic stress tests, Python scripts for LLM evaluation and backend API integration, and Github Actions pipeline configured.
 *   **🟡 In Progress / Skeleton:**
     *   Puzzle Dependency System: Puzzles read from the generator locally, but network synchronization across clients is missing.
+    *   Network & Accounts: Created a basic Express.js backend with JWT authentication (`backend/`) and connected it to Godot via `AuthUI.gd`.
 *   **🔴 Missing / Placeholder:**
-    *   Network Manager / Lobby System (Host/Join).
-    *   Hint & Saboteur Agents.
+    *   Network Manager / Lobby System (Host/Join multiplayer sync).
+    *   Saboteur Agent.
     *   AI Image Generation Pipeline Integration.
     *   Statistics & Scoring UI.
     *   Audio/Visual Glitch Effects.
 
 ## 5. The Next Steps (Priority Roadmap)
-Based on the execution roadmap and current codebase gaps, the next 5 immediate technical tasks are:
+Based on the execution roadmap and current codebase gaps, the next immediate technical tasks are:
 
-1.  **Network Manager (Host/Join Lobby):** Implement Godot's `MultiplayerPeer` to establish a reliable connection between two clients via a Host/Join UI.
+1.  **Network Manager (Host/Join Lobby):** Expand the existing Auth UI into a proper lobby system. Implement Godot's `MultiplayerPeer` to establish a reliable connection between two clients.
 2.  **The Synchronization Test (RPC Validation):** Implement a simple network test where Player A clicks a button and Player B sees a light turn on, confirming the peer-to-peer event flow.
 3.  **Puzzle State Network Sync:** Refactor existing puzzle scripts (like `Numpad.gd`) to use RPC calls to synchronize their state variables and success/failure conditions across both clients.
-4.  **Hint & Saboteur Foundation:** Create the base node structures and simple logic triggers for the Hint and Saboteur agents (e.g., turning off the `ceiling_light_scene` after X seconds).
+4.  **Saboteur Agent Implementation:** Create the base node structure for the Saboteur agent to dynamically mess with the players (flickering lights, locking doors).
+5.  **Backend Persistence:** Migrate the in-memory array in the Node.js backend to a real database (e.g., SQLite/PostgreSQL) for user persistence.
 
 ## 6. Dependency Graph (Cross-Linking Logic)
 Camera A and Camera B share data seamlessly through a centralized logic graph managed by the `PuzzleGeneratorAgent`. 

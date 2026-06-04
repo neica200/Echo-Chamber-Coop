@@ -3,6 +3,9 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_terminal"]
 size = Vector3(0.6, 0.5, 0.5)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_screen_col"]
+size = Vector3(0.8, 0.6, 0.02)
+
 [sub_resource type="BoxMesh" id="BoxMesh_monitor"]
 size = Vector3(0.6, 0.4, 0.4)
 
@@ -22,10 +25,6 @@ size = Vector3(0.5, 0.05, 0.2)
 
 [node name="Terminal" type="StaticBody3D"]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, -0.05)
-shape = SubResource("BoxShape3D_terminal")
-
 [node name="MonitorMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.3, -0.15)
 mesh = SubResource("BoxMesh_monitor")
@@ -36,7 +35,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.21)
 mesh = SubResource("BoxMesh_screen")
 surface_material_override/0 = SubResource("StandardMaterial3D_screen")
 
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.24565, 0.05284)
+shape = SubResource("BoxShape3D_screen_col")
+
 [node name="KeyboardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0.05, 0.15)
 mesh = SubResource("BoxMesh_keyboard")
 surface_material_override/0 = SubResource("StandardMaterial3D_monitor")
+

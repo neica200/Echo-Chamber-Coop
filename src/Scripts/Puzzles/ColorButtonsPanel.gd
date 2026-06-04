@@ -33,6 +33,7 @@ func _ready():
 
 func button_pressed(color: String):
 	current_input.append(color)
+	AudioManager.play_click()
 	print("[Culori] Ai apăsat: ", color, " | Secvență curentă: ", current_input)
 	
 	# Verificăm dacă a greșit undeva
@@ -43,7 +44,16 @@ func button_pressed(color: String):
 			break
 			
 	if not is_correct:
+		AudioManager.play_error()
 		print("❌ [ERROR] Culoare greșită! Secvența s-a resetat.")
 		current_input.clear()
 	elif current_input.size() == target_sequence.size():
+		AudioManager.play_success()
 		print("✅ [SUCCESS] AI FINALIZAT PUZZLE-UL CULORILOR!")
+		
+		# --- CROSS-ROOM EFFECT ---
+		# Anunțăm tot jocul că am terminat Faza 2!
+		GameEvents.advance_stage()
+		
+		# Deschidem seiful din Camera B!
+		GameEvents.emit_signal("safe_opened", "RoomB")

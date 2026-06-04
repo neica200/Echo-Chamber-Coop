@@ -36,8 +36,47 @@ func _ready() -> void:
 		push_error("Scena pentru perete (wall_scene) nu este atribuită în RoomGeneratorAgent.")
 		return
 		
+	# --- ENVIRONMENT ÎNTUNECAT ---
+	var env = Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.05, 0.05, 0.05) # Foarte întunecat
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.05, 0.05, 0.05)
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	
+	var world_env = WorldEnvironment.new()
+	world_env.environment = env
+	add_child(world_env)
+	
+	# Dacă există soarele default, îl oprim complet
+	var sun = get_parent().get_node_or_null("DirectionalLight3D")
+	if sun:
+		sun.light_energy = 0.02
+		
 	# Inițializăm cu un seed fix pentru testare. Pe viitor, acesta va fi primit de la NetworkManager.
 	generate_rooms(12345)
+
+var player1: Node3D
+var player2: Node3D
+var current_player = 1
+
+func _input(event):
+	# Apasă TAB pentru a schimba corpul!
+	if event is InputEventKey and event.keycode == KEY_TAB and event.pressed:
+		if current_player == 1 and player2:
+			if player1.is_focused: player1.exit_focus()
+			current_player = 2
+			player1.is_active = false
+			player2.is_active = true
+			player2.camera.make_current()
+			print("--- Ești Jucătorul 2 (Camera B) ---")
+		elif current_player == 2 and player1:
+			if player2.is_focused: player2.exit_focus()
+			current_player = 1
+			player2.is_active = false
+			player1.is_active = true
+			player1.camera.make_current()
+			print("--- Ești Jucătorul 1 (Camera A) ---")
 
 func generate_rooms(seed_value: int) -> void:
 	rng.seed = seed_value
@@ -45,6 +84,27 @@ func generate_rooms(seed_value: int) -> void:
 	
 	generate_room_a()
 	generate_room_b()
+	
+	# --- LOCAL TEST MANAGER INJECTAT ---
+	# Spawnăm jucătorii automat
+	var player_scene = preload("res://Scenes/player.tscn")
+	if player_scene:
+		player1 = player_scene.instantiate()
+		player1.name = "Player1"
+		add_child(player1)
+		player1.global_position = room_a_spawn.global_position
+		player1.is_active = true
+
+		player2 = player_scene.instantiate()
+		player2.name = "Player2"
+		add_child(player2)
+		player2.global_position = room_b_spawn.global_position
+		player2.is_active = false
+		
+		# Setam camera abia dupa ce amandoi au fost spawnati, ca sa evitam
+		# situatia in care Player2 ii fura focusul lui Player1 cand e creat.
+		current_player = 1
+		player1.get_node("Camera3D").make_current()
 
 # Returnează un array de poziții Vector3 sigure, care nu se suprapun, pentru obiectele de pe podea
 func get_available_grid_positions() -> Array[Vector3]:
@@ -78,7 +138,7 @@ func get_available_wall_slots() -> Array[Dictionary]:
 	return slots
 
 # Funcție utilitară pentru a plasa un obiect pe un slot de perete
-func place_on_wall(parent: Node3D, scene: PackedScene, slots: Array[Dictionary], remove_slot: bool = true) -> Node3D:
+func place_on_wall(scene: PackedScene, slots: Array[Dictionary], remove_slot: bool = true) -> Node3D:
 	if not scene or slots.is_empty(): return null
 	
 	var slot_index = rng.randi_range(0, slots.size() - 1)
@@ -87,13 +147,12 @@ func place_on_wall(parent: Node3D, scene: PackedScene, slots: Array[Dictionary],
 		slots.remove_at(slot_index)
 		
 	var instance = scene.instantiate()
-	parent.add_child(instance)
 	instance.position = slot["pos"]
 	instance.rotation_degrees = slot["rot"]
 	return instance
 
 # Funcție utilitară pentru a plasa un obiect pe grila podelei
-func place_on_floor(parent: Node3D, scene: PackedScene, positions: Array[Vector3], remove_pos: bool = true) -> Node3D:
+func place_on_floor(scene: PackedScene, positions: Array[Vector3], remove_pos: bool = true) -> Node3D:
 	if not scene or positions.is_empty(): return null
 	
 	var pos_index = rng.randi_range(0, positions.size() - 1)
@@ -102,7 +161,6 @@ func place_on_floor(parent: Node3D, scene: PackedScene, positions: Array[Vector3
 		positions.remove_at(pos_index)
 		
 	var instance = scene.instantiate()
-	parent.add_child(instance)
 	instance.position = pos
 	
 	# Rotim aleatoriu pe axa Y pentru varietate (în pași de 90 de grade)
@@ -136,18 +194,41 @@ func place_table_set(parent: Node3D, grid: Array[Vector3]) -> void:
 	# Adăugăm obiectele de puzzle ca noduri copil ale biroului (Sistem de Socket)
 	if terminal_scene:
 		var terminal = terminal_scene.instantiate()
+		terminal.set_script(preload("res://Scripts/Puzzles/Terminal.gd"))
 		table.add_child(terminal)
 		terminal.position = Vector3(-0.4, 1.0, 0)
 		
-	if note_scene:
-		var note = note_scene.instantiate()
-		table.add_child(note)
-		note.position = Vector3(0.3, 1.01, 0.2)
+		# [RUSTY LAKE FOCUS POINT PENTRU TERMINAL]
+		var focus_term = Marker3D.new()
+		focus_term.name = "FocusPoint"
+		focus_term.position = Vector3(0, 0.4, 0.8) # În fața ecranului
+		terminal.add_child(focus_term)
 		
 	if matrix_monitor_scene:
 		var monitor = matrix_monitor_scene.instantiate()
+		monitor.set_script(preload("res://Scripts/Puzzles/MatrixMonitor.gd"))
 		table.add_child(monitor)
 		monitor.position = Vector3(0.6, 1.25, -0.2)
+		
+	# --- EPIC 1: INVENTORY & DRAWER ---
+	# Atașăm logica de sertar încuiat direct pe birou, dar chemam _ready manual pentru ca a fost deja atasat
+	table.set_script(preload("res://Scripts/Environment/LockedDrawer.gd"))
+	if table.has_method("_ready"): table._ready()
+	
+	if note_scene:
+		var note = note_scene.instantiate()
+		note.set_script(preload("res://Scripts/Puzzles/Note.gd"))
+		table.add_child(note)
+		note.position = Vector3(0.3, 1.01, 0.2)
+		note.name = "Note"
+		note.visible = false # Ascuns până când descuie masa
+		
+		# [RUSTY LAKE FOCUS POINT PENTRU FOAIE]
+		var focus_note = Marker3D.new()
+		focus_note.name = "FocusPoint"
+		focus_note.position = Vector3(0, 0.5, 0.3)
+		focus_note.rotation_degrees.x = -45
+		note.add_child(focus_note)
 		
 	if mug_scene:
 		var mug = mug_scene.instantiate()
@@ -178,6 +259,12 @@ func place_pedestal_set(parent: Node3D, grid: Array[Vector3]) -> void:
 		pedestal.add_child(note)
 		note.position = Vector3(0, 1.01, 0)
 		
+		var focus_note = Marker3D.new()
+		focus_note.name = "FocusPoint"
+		focus_note.position = Vector3(0, 0.5, 0.3)
+		focus_note.rotation_degrees.x = -45
+		note.add_child(focus_note)
+		
 	# Împrăștiem cărți în jurul piedestalului
 	if book_scene:
 		for i in range(2):
@@ -204,15 +291,38 @@ func generate_room_a() -> void:
 	
 	if ceiling_light_scene:
 		var light = ceiling_light_scene.instantiate()
+		light.set_script(preload("res://Scripts/Environment/CeilingLightLogic.gd"))
 		room_a_root.add_child(light)
 		light.position = Vector3(room_size.x / 2.0, 3.0, room_size.y / 2.0)
 		
 	# Plasăm biroul, scaunul și obiectele direct conectate
 	place_table_set(room_a_root, grid)
 	
-	# Plasăm elementele de pe pereți
-	place_on_wall(room_a_root, color_hint_scene, wall_slots)
+	var color_hint = place_on_wall(color_hint_scene, wall_slots)
+	if color_hint: 
+		color_hint.set_script(preload("res://Scripts/Puzzles/ColorHintBoard.gd"))
+		room_a_root.add_child(color_hint)
 
+	# --- EPIC 1: INVENTORY KEY ---
+	# Spawnăm cheia magică pe un grid liber din Camera A
+	if mug_scene and grid.size() > 0:
+		var key = mug_scene.instantiate() # Folosim cana pe post de cheie temporară
+		room_a_root.add_child(key)
+		key.position = grid[0]
+		
+		# O adăugăm într-un body ca să o luăm cu raza
+		var key_body = StaticBody3D.new()
+		var key_col = CollisionShape3D.new()
+		var box = BoxShape3D.new()
+		box.size = Vector3(0.2, 0.2, 0.2)
+		key_col.shape = box
+		key_body.add_child(key_col)
+		key.add_child(key_body)
+		
+		key_body.set_script(preload("res://Scripts/Environment/PickupItem.gd"))
+		key_body.set("item_name", "Cheie de Birou")
+		# Ca să dispară tot obiectul când îl luăm, nu doar corpul de fizică
+		key_body.set("owner", key)
 func generate_room_b() -> void:
 	var room_b_root = Node3D.new()
 	room_b_root.name = "RoomB"
@@ -232,6 +342,7 @@ func generate_room_b() -> void:
 	
 	if ceiling_light_scene:
 		var light = ceiling_light_scene.instantiate()
+		light.set_script(preload("res://Scripts/Environment/CeilingLightLogic.gd"))
 		room_b_root.add_child(light)
 		light.position = Vector3(room_size.x / 2.0, 3.0, room_size.y / 2.0)
 		
@@ -239,12 +350,38 @@ func generate_room_b() -> void:
 	place_pedestal_set(room_b_root, grid)
 	
 	# Plasăm seiful pe un loc liber de pe podea
-	place_on_floor(room_b_root, safe_scene, grid)
+	var safe = place_on_floor(safe_scene, grid)
+	if safe: 
+		safe.set_script(preload("res://Scripts/Environment/DoorLogic.gd"))
+		room_b_root.add_child(safe)
 	
 	# Plasăm mecanismele de puzzle pe pereți
-	place_on_wall(room_b_root, numpad_scene, wall_slots)
-	place_on_wall(room_b_root, fuse_box_scene, wall_slots)
-	place_on_wall(room_b_root, color_btn_scene, wall_slots)
+	var numpad = place_on_wall(numpad_scene, wall_slots)
+	if numpad: 
+		numpad.set_script(preload("res://Scripts/Puzzles/Numpad.gd"))
+		room_b_root.add_child(numpad)
+		var f1 = Marker3D.new()
+		f1.name = "FocusPoint"
+		f1.position = Vector3(0, 0, 0.6)
+		numpad.add_child(f1)
+	
+	var fusebox = place_on_wall(fuse_box_scene, wall_slots)
+	if fusebox: 
+		fusebox.set_script(preload("res://Scripts/Puzzles/FuseBox3x3.gd"))
+		room_b_root.add_child(fusebox)
+		var f2 = Marker3D.new()
+		f2.name = "FocusPoint"
+		f2.position = Vector3(0, 0, 1.0)
+		fusebox.add_child(f2)
+	
+	var colorbtn = place_on_wall(color_btn_scene, wall_slots)
+	if colorbtn: 
+		colorbtn.set_script(preload("res://Scripts/Puzzles/ColorButtonsPanel.gd"))
+		room_b_root.add_child(colorbtn)
+		var f3 = Marker3D.new()
+		f3.name = "FocusPoint"
+		f3.position = Vector3(0, 0, 1.2)
+		colorbtn.add_child(f3)
 	
 	# Cazul special pentru ușă: se plasează la nivelul solului (y=0) dar pe un slot de perete
 	if door_scene and wall_slots.size() > 0:
@@ -253,6 +390,7 @@ func generate_room_b() -> void:
 		wall_slots.remove_at(slot_index)
 		
 		var door = door_scene.instantiate()
+		door.set_script(preload("res://Scripts/Environment/DoorLogic.gd"))
 		room_b_root.add_child(door)
 		door.position = Vector3(round(slot["pos"].x), 0, round(slot["pos"].z))
 		door.rotation_degrees = slot["rot"]

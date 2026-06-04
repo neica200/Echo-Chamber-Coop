@@ -24,6 +24,12 @@ script = ExtResource("1_fw1j7")
 mesh = SubResource("BoxMesh_panel")
 surface_material_override/0 = SubResource("StandardMaterial3D_panel")
 
+[node name="BaseStaticBody" type="StaticBody3D" parent="PanelMesh"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PanelMesh/BaseStaticBody"]
+shape = SubResource("BoxShape3D_cbtn")
+transform = Transform3D(6, 0, 0, 0, 3, 0, 0, 0, 2, 0, 0, 0)
+
 [node name="ColorBtn_1" type="StaticBody3D" parent="." unique_id=408034364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0, 0.04)
 

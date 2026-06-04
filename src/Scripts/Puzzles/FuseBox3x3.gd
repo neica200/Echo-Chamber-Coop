@@ -26,6 +26,8 @@ func toggle_fuse(index: int, fuse_node: Node3D):
 	# Inversăm starea (dacă e true devine false, și invers)
 	current_grid[index] = not current_grid[index]
 	
+	AudioManager.play_click()
+	
 	# Oferim feedback vizual
 	var mesh = fuse_node.get_node("MeshInstance3D")
 	var mat = StandardMaterial3D.new()
@@ -49,4 +51,10 @@ func check_solution():
 			break
 			
 	if is_correct:
+		AudioManager.play_success()
 		print("✅ [SUCCESS] MATRICEA A FOST REZOLVATĂ! Siguranțele au căzut pe verde perfect.")
+		
+		# --- CROSS-ROOM EFFECT ---
+		GameEvents.advance_stage()
+		GameEvents.emit_signal("room_lights_toggled", "RoomA", true)
+		GameEvents.emit_signal("room_lights_toggled", "RoomB", true)

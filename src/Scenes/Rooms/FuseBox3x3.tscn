@@ -24,6 +24,12 @@ script = ExtResource("1_8v5rs")
 mesh = SubResource("BoxMesh_box")
 surface_material_override/0 = SubResource("StandardMaterial3D_box")
 
+[node name="BaseStaticBody" type="StaticBody3D" parent="BoxMesh"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BoxMesh/BaseStaticBody"]
+shape = SubResource("BoxShape3D_fuse")
+transform = Transform3D(6, 0, 0, 0, 6, 0, 0, 0, 2.5, 0, 0, 0)
+
 [node name="Fuse_0_0" type="StaticBody3D" parent="." unique_id=1538285916]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.15, 0.05)
 

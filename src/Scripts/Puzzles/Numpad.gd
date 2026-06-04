@@ -29,14 +29,23 @@ func _ready():
 
 # Această funcție e chemată de Buton când e lovit cu raza laser a jucătorului
 func button_pressed(digit: String):
+	if GameEvents.current_stage < 4:
+		print("🔒 [Sistem] Trebuie să obții codul final din Terminal (Faza 3) mai întâi!")
+		return
+		
 	current_input += digit
+	AudioManager.play_click()
 	print("[Numpad] Ai tastat până acum: ", current_input)
 	
 	# Verificăm dacă jucătorul a băgat toate cele 4 cifre
 	if current_input.length() == target_code.length():
 		if current_input == target_code:
+			AudioManager.play_success()
 			print("✅ [SUCCESS] SEIFUL A FOST DESCHIS! Ai salvat situația!")
-			# Aici pe viitor vei declanșa o animație de deschidere uși
+			
+			# --- CROSS-ROOM EFFECT ---
+			GameEvents.emit_signal("escape_door_opened")
 		else:
+			AudioManager.play_error()
 			print("❌ [ERROR] Parolă greșită! S-a resetat.")
 			current_input = "" # Ștergem inputul ca să poată încerca iar

@@ -159,6 +159,8 @@ func _on_btn_pressed(btn_id: String):
 			# A greșit ordinea!
 			print("❌ [Terminal] Secvență greșită! Resetare.")
 			AudioManager.play_error()
+			if has_node("/root/HintAgent"):
+				get_node("/root/HintAgent").register_wrong_attempt("terminal_hack")
 			current_sequence.clear()
 			return
 			

@@ -2,6 +2,7 @@ extends Node3D
 
 var target_grid = []
 var current_grid = [false, false, false, false, false, false, false, false, false]
+var moves_made = 0
 
 func _ready():
 	await get_tree().create_timer(0.1).timeout
@@ -27,6 +28,7 @@ func toggle_fuse(index: int, fuse_node: Node3D):
 	current_grid[index] = not current_grid[index]
 	
 	AudioManager.play_click()
+	print("[FuseBox] Toggled fuse index: ", index, " | State: ", current_grid[index])
 	
 	# Oferim feedback vizual
 	var mesh = fuse_node.get_node("MeshInstance3D")
@@ -37,6 +39,8 @@ func toggle_fuse(index: int, fuse_node: Node3D):
 		mat.emission = Color(0.0, 1.0, 0.0)
 	else:
 		mat.albedo_color = Color(0.3, 0.3, 0.3) # Gri = Stins
+		mat.emission_enabled = false
+		mat.emission = Color(0.0, 0.0, 0.0)
 		
 	mesh.set_surface_override_material(0, mat)
 	
@@ -44,6 +48,9 @@ func toggle_fuse(index: int, fuse_node: Node3D):
 
 func check_solution():
 	var is_correct = true
+	print("[FuseBox] Current Grid: ", current_grid)
+	print("[FuseBox] Target Grid:  ", target_grid)
+	
 	# Verificăm dacă grila jucătorului e IDENTICĂ cu soluția
 	for i in range(9):
 		if current_grid[i] != target_grid[i]:
@@ -58,3 +65,9 @@ func check_solution():
 		GameEvents.advance_stage()
 		GameEvents.emit_signal("room_lights_toggled", "RoomA", true)
 		GameEvents.emit_signal("room_lights_toggled", "RoomB", true)
+	else:
+		moves_made += 1
+		if moves_made % 8 == 0:
+			if has_node("/root/HintAgent"):
+				get_node("/root/HintAgent").register_wrong_attempt("fuse_puzzle")
+

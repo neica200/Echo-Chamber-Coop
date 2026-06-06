@@ -24,6 +24,7 @@ config/icon="res://icon.svg"
 PuzzleGen="*uid://5mdvvj3yt22j"
 GameEvents="*res://Scripts/Core/GameEvents.gd"
 AudioManager="*res://Scripts/Core/AudioManager.gd"
+HintAgent="*res://Scripts/Agents/HintAgent.gd"
 
 [input]
 

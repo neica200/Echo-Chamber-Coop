@@ -121,35 +121,37 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("interact") and not is_focused:
 		check_interaction()
 
+func find_focus_point(node: Node) -> Node:
+	var current = node
+	while current and current != get_tree().root:
+		if current.has_node("FocusPoint"):
+			return current
+		current = current.get_parent()
+	return null
+
+func find_interact_target(node: Node) -> Node:
+	var current = node
+	while current and current != get_tree().root:
+		if current.has_method("interact"):
+			return current
+		current = current.get_parent()
+	return null
+
 func check_interaction():
 	interaction_ray.force_raycast_update()
 	if interaction_ray.is_colliding():
 		var target = interaction_ray.get_collider()
-		print("DEBUG RAYCAST: Am lovit obiectul = ", target.name, " (Clasa: ", target.get_class(), ")")
 		if target:
 			if target.has_method("pick_up"):
 				target.pick_up(self)
 			else:
 				var focus_target = find_focus_point(target)
-				print("DEBUG FOCUS: find_focus_point a returnat = ", focus_target)
 				if focus_target:
 					enter_focus(focus_target)
-				elif target.has_method("interact"):
-					target.interact()
-	else:
-		print("DEBUG RAYCAST: Nu lovesc absolut nimic la distanța asta.")
-
-func find_focus_point(node: Node) -> Node:
-	var current = node
-	print("DEBUG FOCUS HIERARCHY for ", node.name, ":")
-	while current and current != get_tree().root:
-		print(" - Checking ancestor: ", current.name)
-		if current.has_node("FocusPoint"):
-			print("   -> GĂSIT FocusPoint în ", current.name)
-			return current
-		current = current.get_parent()
-	print("   -> NU am găsit FocusPoint nicăieri în sus!")
-	return null
+				else:
+					var interact_target = find_interact_target(target)
+					if interact_target:
+						interact_target.interact()
 
 # --- RUSTY LAKE FOCUS SYSTEM ---
 func enter_focus(target_puzzle: Node3D):
@@ -212,8 +214,10 @@ func handle_focus_click():
 	if result and result.collider:
 		if result.collider.has_method("receive_3d_click"):
 			result.collider.receive_3d_click(result.position)
-		elif result.collider.has_method("interact"):
-			result.collider.interact()
+		else:
+			var interact_target = find_interact_target(result.collider)
+			if interact_target:
+				interact_target.interact()
 
 # --- INVENTORY FUNCTIONS ---
 func add_to_inventory(item_name: String):

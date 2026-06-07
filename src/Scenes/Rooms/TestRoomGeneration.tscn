@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://bibkk664ios6v"]
+[gd_scene load_steps=20 format=3 uid="uid://bibkk664ios6v"]
 
-[ext_resource type="Script" uid="uid://d0pb2vw2c2tr8" path="res://Scripts/Agents/RoomGeneratorAgent.gd" id="1_rg"]
+[ext_resource type="Script" path="res://Scripts/Agents/RoomGeneratorAgent.gd" id="1_rg"]
 [ext_resource type="PackedScene" uid="uid://c8x1y203w4v5" path="res://Scenes/Rooms/Wall.tscn" id="2_wall"]
 [ext_resource type="PackedScene" uid="uid://eay203w4v5u6" path="res://Scenes/Rooms/ArmoredDoor.tscn" id="3_door"]
 [ext_resource type="PackedScene" uid="uid://e003w4v5u6t7" path="res://Scenes/Rooms/Screen.tscn" id="4_screen"]
@@ -12,16 +12,15 @@
 [ext_resource type="PackedScene" uid="uid://8cwjt8rqsjx6" path="res://Scenes/Rooms/Pedestal.tscn" id="10_pedestal"]
 [ext_resource type="PackedScene" uid="uid://brju0u00mct8q" path="res://Scenes/Rooms/Numpad.tscn" id="11_numpad"]
 [ext_resource type="PackedScene" uid="uid://ds3bcdajlf8fe" path="res://Scenes/Rooms/Terminal.tscn" id="12_terminal"]
-[ext_resource type="PackedScene" uid="uid://c2b4nruwm7gdq" path="res://Scenes/Rooms/Note.tscn" id="13_note"]
-[ext_resource type="PackedScene" uid="uid://cjsiyixwuh6vl" path="res://Scenes/Rooms/ColorHintBoard.tscn" id="14_chint"]
-[ext_resource type="PackedScene" uid="uid://c0kvkkex7kprm" path="res://Scenes/Rooms/ColorButtonsPanel.tscn" id="15_cbtn"]
+[ext_resource type="PackedScene" path="res://Scenes/Rooms/Note.tscn" id="13_note"]
+[ext_resource type="PackedScene" uid="uid://bijv634je05ge" path="res://Scenes/Rooms/ColorHintBoard.tscn" id="14_chint"]
+[ext_resource type="PackedScene" uid="uid://doj7u1u0fjnl4" path="res://Scenes/Rooms/ColorButtonsPanel.tscn" id="15_cbtn"]
 [ext_resource type="PackedScene" uid="uid://u0utv0wlxke3" path="res://Scenes/Rooms/MatrixMonitor.tscn" id="16_mmon"]
 [ext_resource type="PackedScene" uid="uid://bmddekbyom6tx" path="res://Scenes/Rooms/FuseBox3x3.tscn" id="17_fuse"]
-[ext_resource type="PackedScene" path="res://Scenes/Rooms/Book.tscn" id="18_book"]
+[ext_resource type="PackedScene" uid="uid://b18rm6r3asxsd" path="res://Scenes/Rooms/Book.tscn" id="18_book"]
 [ext_resource type="PackedScene" uid="uid://dnk3dxeiypbap" path="res://Scenes/Rooms/Mug.tscn" id="19_mug"]
-[ext_resource type="PackedScene" uid="uid://df1l2yjqfnh0x" path="res://Scenes/player.tscn" id="20_q572e"]
 
-[node name="TestRoomGeneration" type="Node3D" unique_id=877540240]
+[node name="TestRoomGeneration" type="Node3D"]
 script = ExtResource("1_rg")
 wall_scene = ExtResource("2_wall")
 door_scene = ExtResource("3_door")
@@ -42,7 +41,17 @@ fuse_box_scene = ExtResource("17_fuse")
 book_scene = ExtResource("18_book")
 mug_scene = ExtResource("19_mug")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2102589614]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
 light_energy = 0.05
 shadow_enabled = true
+
+[node name="GhidajPodea_CameraA" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -0.1, 6)
+visible = false
+size = Vector3(12, 0.1, 12)
+
+[node name="GhidajPodea_CameraB" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, -0.1, 6)
+visible = false
+size = Vector3(12, 0.1, 12)

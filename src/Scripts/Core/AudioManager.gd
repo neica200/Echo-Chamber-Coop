@@ -47,11 +47,12 @@ func play_click():
 	else:
 		print("🔊 [AUDIO] CLICK!")
 
-func play_error():
+func play_error(volume: float = 0.0):
 	if error_player.stream:
+		error_player.volume_db = volume
 		error_player.play()
 	else:
-		print("🔊 [AUDIO] ERROR / BUZZER!")
+		print("🔊 [AUDIO] ERROR / BUZZER! (vol: ", volume, ")")
 
 func play_success():
 	if success_player.stream:

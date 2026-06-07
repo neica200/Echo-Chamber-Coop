@@ -1,6 +1,4 @@
-[gd_scene format=3 uid="uid://c0kvkkex7kprm"]
-
-[ext_resource type="Script" uid="uid://bd0d8waigsj38" path="res://Scripts/Puzzles/ColorButtonsPanel.gd" id="1_fw1j7"]
+[gd_scene load_steps=6 format=3 uid="uid://doj7u1u0fjnl4"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_panel"]
 size = Vector3(0.6, 0.3, 0.05)
@@ -17,55 +15,48 @@ size = Vector3(0.1, 0.1, 0.03)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cbtn"]
 albedo_color = Color(0.5, 0.5, 0.5, 1)
 
-[node name="ColorButtonsPanel" type="Node3D" unique_id=62691350]
-script = ExtResource("1_fw1j7")
+[node name="ColorButtonsPanel" type="Node3D"]
 
-[node name="PanelMesh" type="MeshInstance3D" parent="." unique_id=391393183]
+[node name="PanelMesh" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_panel")
 surface_material_override/0 = SubResource("StandardMaterial3D_panel")
 
-[node name="BaseStaticBody" type="StaticBody3D" parent="PanelMesh"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PanelMesh/BaseStaticBody"]
-shape = SubResource("BoxShape3D_cbtn")
-transform = Transform3D(6, 0, 0, 0, 3, 0, 0, 0, 2, 0, 0, 0)
-
-[node name="ColorBtn_1" type="StaticBody3D" parent="." unique_id=408034364]
+[node name="ColorBtn_1" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0, 0.04)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_1" unique_id=1584273565]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_1"]
 shape = SubResource("BoxShape3D_cbtn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_1" unique_id=1194079513]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_1"]
 mesh = SubResource("BoxMesh_cbtn")
 surface_material_override/0 = SubResource("StandardMaterial3D_cbtn")
 
-[node name="ColorBtn_2" type="StaticBody3D" parent="." unique_id=1196591131]
+[node name="ColorBtn_2" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.066, 0, 0.04)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_2" unique_id=442034527]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_2"]
 shape = SubResource("BoxShape3D_cbtn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_2" unique_id=651926546]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_2"]
 mesh = SubResource("BoxMesh_cbtn")
 surface_material_override/0 = SubResource("StandardMaterial3D_cbtn")
 
-[node name="ColorBtn_3" type="StaticBody3D" parent="." unique_id=1834515233]
+[node name="ColorBtn_3" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.066, 0, 0.04)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_3" unique_id=1612858984]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_3"]
 shape = SubResource("BoxShape3D_cbtn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_3" unique_id=1151452842]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_3"]
 mesh = SubResource("BoxMesh_cbtn")
 surface_material_override/0 = SubResource("StandardMaterial3D_cbtn")
 
-[node name="ColorBtn_4" type="StaticBody3D" parent="." unique_id=1332811059]
+[node name="ColorBtn_4" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0, 0.04)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_4" unique_id=236259890]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ColorBtn_4"]
 shape = SubResource("BoxShape3D_cbtn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_4" unique_id=504914670]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ColorBtn_4"]
 mesh = SubResource("BoxMesh_cbtn")
 surface_material_override/0 = SubResource("StandardMaterial3D_cbtn")

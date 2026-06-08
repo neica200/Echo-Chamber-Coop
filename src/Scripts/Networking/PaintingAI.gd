@@ -37,14 +37,21 @@ var http_request: HTTPRequest
 var chosen_prompt: String
 
 func _ready() -> void:
-	# Alege un prompt random la fiecare sesiune
-	chosen_prompt = PROMPTS[randi() % PROMPTS.size()]
-	print("[PaintingAI] Generez tabloul cu promptul: ", chosen_prompt)
-
 	http_request = HTTPRequest.new()
 	add_child(http_request)
 	http_request.request_completed.connect(_on_request_completed)
 
+	# Doar host-ul alege promptul și îl sincronizează
+	if multiplayer.is_server():
+		seed(Time.get_unix_time_from_system())
+		chosen_prompt = PROMPTS[randi() % PROMPTS.size()]
+		print("[PaintingAI] Generez tabloul cu promptul: ", chosen_prompt)
+		sync_prompt.rpc(chosen_prompt)
+
+@rpc("authority", "call_local")
+func sync_prompt(prompt: String) -> void:
+	chosen_prompt = prompt
+	print("[PaintingAI] Prompt sincronizat: ", chosen_prompt)
 	if USE_DALLE:
 		_request_dalle()
 	else:

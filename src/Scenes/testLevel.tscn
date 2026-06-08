@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://doskk84mnhng2"]
 
-[ext_resource type="PackedScene" uid="uid://df1l2yjqfnh0x" path="res://Scenes/player.tscn" id="1_alq6k"]
+[ext_resource type="PackedScene" uid="uid://d3cnleuydmuue" path="res://Scenes/Rooms/player.tscn" id="1_alq6k"]
 [ext_resource type="Script" uid="uid://cqd4dnyvaxt6p" path="res://Scripts/Environment/TestButton.gd" id="2_qpv5s"]
+[ext_resource type="PackedScene" uid="uid://bx66lps223se4" path="res://Scenes/EndGame.tscn" id="3_qpv5s"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_alq6k"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -37,3 +38,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.77061474, 0.8447231, 0.164
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93995523, -0.95277286)
 use_collision = true
 script = ExtResource("2_qpv5s")
+
+[node name="EndGame" parent="." unique_id=2129094680 instance=ExtResource("3_qpv5s")]

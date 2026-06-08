@@ -1,4 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://brju0u00mct8q"]
+[gd_scene format=3 uid="uid://brju0u00mct8q"]
+
+[ext_resource type="Script" uid="uid://b0wi6j4w3mjuv" path="res://Scripts/Puzzles/Numpad.gd" id="1_imbwq"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_base"]
 size = Vector3(0.3, 0.4, 0.05)
@@ -16,108 +18,109 @@ size = Vector3(0.06, 0.06, 0.02)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_btn"]
 albedo_color = Color(0.3, 0.3, 0.3, 1)
 
-[node name="Numpad" type="Node3D"]
+[node name="Numpad" type="Node3D" unique_id=33083154]
+script = ExtResource("1_imbwq")
 
-[node name="BaseMesh" type="MeshInstance3D" parent="."]
+[node name="BaseMesh" type="MeshInstance3D" parent="." unique_id=52937293]
 mesh = SubResource("BoxMesh_base")
 surface_material_override/0 = SubResource("StandardMaterial3D_base")
 
-[node name="Button_1" type="StaticBody3D" parent="."]
+[node name="Button_1" type="StaticBody3D" parent="." unique_id=1432640394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0.05, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_1" unique_id=686348002]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_1" unique_id=103737275]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_2" type="StaticBody3D" parent="."]
+[node name="Button_2" type="StaticBody3D" parent="." unique_id=740163154]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_2" unique_id=79232468]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_2" unique_id=1939197141]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_3" type="StaticBody3D" parent="."]
+[node name="Button_3" type="StaticBody3D" parent="." unique_id=1937349119]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, 0.05, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_3"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_3" unique_id=593014382]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_3"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_3" unique_id=1756637358]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_4" type="StaticBody3D" parent="."]
+[node name="Button_4" type="StaticBody3D" parent="." unique_id=1235457122]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, -0.03, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_4"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_4" unique_id=1349254050]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_4"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_4" unique_id=347871327]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_5" type="StaticBody3D" parent="."]
+[node name="Button_5" type="StaticBody3D" parent="." unique_id=1314580290]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_5"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_5" unique_id=774423867]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_5"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_5" unique_id=1340954698]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_6" type="StaticBody3D" parent="."]
+[node name="Button_6" type="StaticBody3D" parent="." unique_id=350281728]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, -0.03, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_6"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_6" unique_id=1222831936]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_6"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_6" unique_id=1021151723]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_7" type="StaticBody3D" parent="."]
+[node name="Button_7" type="StaticBody3D" parent="." unique_id=408400876]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, -0.11, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_7"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_7" unique_id=1308363751]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_7"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_7" unique_id=2138517785]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_8" type="StaticBody3D" parent="."]
+[node name="Button_8" type="StaticBody3D" parent="." unique_id=626980903]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.11, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_8"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_8" unique_id=1212658736]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_8"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_8" unique_id=669211985]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_9" type="StaticBody3D" parent="."]
+[node name="Button_9" type="StaticBody3D" parent="." unique_id=527261771]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, -0.11, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_9"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_9" unique_id=114353623]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_9"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_9" unique_id=125065534]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")
 
-[node name="Button_0" type="StaticBody3D" parent="."]
+[node name="Button_0" type="StaticBody3D" parent="." unique_id=1361044097]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.19, 0.03)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_0"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Button_0" unique_id=1416838528]
 shape = SubResource("BoxShape3D_btn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_0"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Button_0" unique_id=1247657431]
 mesh = SubResource("BoxMesh_btn")
 surface_material_override/0 = SubResource("StandardMaterial3D_btn")

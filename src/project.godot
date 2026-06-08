@@ -34,6 +34,7 @@ SaboteurAgent="*res://Scripts/Agents/SaboteurAgent.gd"
 DifficultyAgent="*res://Scripts/Agents/DifficultyAgent.gd"
 NetworkManager="*uid://cel7td8sl660j"
 WalkieTalkie="*uid://cin8oc78ttb0q"
+GameStats="*uid://cojglk7t6ixsp"
 
 [filesystem]
 

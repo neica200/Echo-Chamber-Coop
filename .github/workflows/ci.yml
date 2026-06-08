@@ -1,0 +1,58 @@
+name: Echo Chamber CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  backend-ci:
+    name: Backend CI (Node.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+
+    - name: Install Dependencies
+      run: npm install
+
+    # Daca aveti teste pe viitor, decomentati linia de mai jos
+    # - name: Run Tests
+    #   run: npm test
+
+  frontend-ci:
+    name: Frontend CI (Godot 4)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # Verificăm dacă proiectul Godot are structura corectă
+    - name: Check Godot Project Validity
+      run: |
+        if [ ! -f "src/project.godot" ]; then
+          echo "Eroare: src/project.godot nu a fost găsit!"
+          exit 1
+        else
+          echo "Proiectul Godot a fost detectat cu succes!"
+        fi
+
+    # Un linter simplu pentru a verifica erorile de sintaxă în scripturile GDScript
+    - name: GDScript Syntax Check
+      uses: Scony/godot-gdscript-linter@v1
+      with:
+        source-directory: 'src/Scripts'
+        godot-version: '4.2.1'

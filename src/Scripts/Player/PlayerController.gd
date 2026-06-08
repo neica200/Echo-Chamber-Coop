@@ -254,7 +254,10 @@ func update_inventory_ui():
 	if inventory.is_empty():
 		inventory_label.text = "Inventar: Gol"
 	else:
-		inventory_label.text = "Inventar:\n- " + "\n- ".join(inventory)
+		var txt = "Inventar:"
+		for item in inventory:
+			txt += "\n- " + item
+		inventory_label.text = txt
 
 # --- SOUND SYSTEM ---
 func _play_footstep():

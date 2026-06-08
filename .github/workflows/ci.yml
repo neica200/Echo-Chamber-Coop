@@ -61,3 +61,15 @@ jobs:
 
     - name: Run GDScript Linter
       run: gdlint src/Scripts/ || echo "Găsite warning-uri de linting, dar permitem build-ul să treacă (pentru barem)!"
+
+    # Rulăm testele automate (Evals pentru Agent) folosind executabilul oficial Godot headless
+    - name: Run Automated Tests & Agent Evals
+      uses: abarichello/godot-ci@v2
+      with:
+        version: '4.2.1'
+        mac_binary: 'false'
+        windows_binary: 'false'
+      
+    - name: Execute Evals
+      run: |
+        godot --headless -s tests/eval_hint_agent.gd

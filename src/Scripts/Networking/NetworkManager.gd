@@ -37,4 +37,4 @@ func host():
 func join(ip: String):
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_client(ip, PORT)
-	multiplayer.multiplayer_peer = peers
+	multiplayer.multiplayer_peer = peer

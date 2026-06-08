@@ -20,6 +20,12 @@ var inventory: Array[String] = []
 var inventory_label: Label
 
 func _ready():
+	if not is_multiplayer_authority():
+		camera.current = false
+		set_process(false)
+		set_physics_process(false)
+		set_process_unhandled_input(false)
+		return
 	if is_active:
 		camera.make_current()
 		

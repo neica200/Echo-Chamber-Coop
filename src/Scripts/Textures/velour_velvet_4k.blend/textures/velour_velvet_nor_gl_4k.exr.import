@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bh5bwel08otki"
-path="res://.godot/imported/velour_velvet_anisotropy_strength_4k.png-240d92861b704df7870aa13c73deea18.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://ckasrdq24kxag"
+valid=false
 
 [deps]
 
-source_file="res://Scripts/Textures/velour_velvet_4k.blend/textures/velour_velvet_anisotropy_strength_4k.png"
-dest_files=["res://.godot/imported/velour_velvet_anisotropy_strength_4k.png-240d92861b704df7870aa13c73deea18.ctex"]
+source_file="res://Scripts/Textures/velour_velvet_4k.blend/textures/velour_velvet_nor_gl_4k.exr"
 
 [params]
 

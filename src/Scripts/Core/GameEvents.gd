@@ -52,4 +52,3 @@ func pull_exit_lever(id: int):
 	else:
 		# Porniți cronometrul pentru cealaltă manivelă
 		lever_timer = 2.0
-

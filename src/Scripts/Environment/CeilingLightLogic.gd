@@ -1,8 +1,8 @@
 extends Node3D
 
-@onready var omni_light = $OmniLight3D
-@onready var spot_light = $SpotLight3D
-@onready var fixture = $FixtureMesh
+@onready var omni_light = get_node_or_null("OmniLight3D")
+@onready var spot_light = get_node_or_null("SpotLight3D")
+@onready var fixture = get_node_or_null("FixtureMesh")
 
 var default_omni_energy = 1.0
 var default_spot_energy = 2.0

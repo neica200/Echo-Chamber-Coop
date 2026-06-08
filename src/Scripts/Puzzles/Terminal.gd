@@ -108,9 +108,9 @@ func receive_3d_click(hit_position: Vector3):
 	var screen_width = 0.8
 	var screen_height = 0.6
 	
-	# PlaneMesh e pe planul XZ, rotit cu 90 grade pe X ca sa stea in picioare.
-	# Coordonata locala X pe PlaneMesh mapeaza spre axa X.
-	# Coordonata locala Z pe PlaneMesh mapeaza pe inaltime (deoarece l-am rotit pe X).
+	# Coordonata locala Z pe PlaneMesh mapeaza pe inaltime (deoarece l-am rotit pe X cu 90 de grade).
+	# Marginea de sus (Top) a monitorului corespunde la Z negativ (-0.3), iar jos la Z pozitiv (+0.3).
+	# Pentru Viewport 2D, Top este v = 0 și Bottom este v = 1.
 	var u = (local_hit.x + (screen_width / 2.0)) / screen_width
 	var v = (local_hit.z + (screen_height / 2.0)) / screen_height
 	

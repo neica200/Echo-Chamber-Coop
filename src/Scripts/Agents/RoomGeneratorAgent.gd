@@ -681,7 +681,6 @@ func place_table_set(parent: Node3D, grid: Array[Vector3], fixed_rot: float = -1
 	if new_computer_scene:
 		var computer_body = StaticBody3D.new()
 		computer_body.name = "ComputerTerminal"
-		table.add_child(computer_body)
 		computer_body.position = Vector3(0.4, 1.30, 0.0) # Înapoi la 1.30 unde stătea bine
 		
 		# Atașăm logica de puzzle
@@ -695,6 +694,7 @@ func place_table_set(parent: Node3D, grid: Array[Vector3], fixed_rot: float = -1
 		# Creăm ierarhia falsă pentru a împiedica crash-ul scriptului Terminal.gd
 		var monitor_mesh = Node3D.new()
 		monitor_mesh.name = "MonitorMesh"
+		monitor_mesh.position = Vector3(0, 0.4, 0)
 		computer_body.add_child(monitor_mesh)
 		
 		var screen_mesh = MeshInstance3D.new()
@@ -722,6 +722,9 @@ func place_table_set(parent: Node3D, grid: Array[Vector3], fixed_rot: float = -1
 		term_glow.shadow_enabled = true
 		term_glow.position = Vector3(0, 0.3, 0.3)
 		computer_body.add_child(term_glow)
+		
+		# Adăugăm computerul în scenă la final pentru a apela _ready()
+		table.add_child(computer_body)
 		
 	if matrix_monitor_scene:
 		var monitor = matrix_monitor_scene.instantiate()

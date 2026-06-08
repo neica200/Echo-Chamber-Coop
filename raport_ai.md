@@ -20,12 +20,21 @@ Printre instrumentele utilizate se numără asistenți AI avansați, cu capabili
 - **Automatizare și DevOps:** Am delegat AI-ului redactarea și repararea pipeline-ului CI/CD prin GitHub Actions (`ci.yml`), inclusiv înlocuirea unor acțiuni GitHub third-party învechite cu scripturi oficiale prin Python (`gdtoolkit`), asigurând astfel un pipeline robust.
 - **Generare de Documentație:** Diagramele arhitecturale și de workflow complexe (secvențele Raycast) au fost generate și formatate folosind standardul `Mermaid` prin prompting direct din descrierea codului.
 
-### [Nume Membru 2] (Completare necesară)
-*Descrie aici cum ai folosit tool-urile de AI. Exemple:*
-- *Generare sau ajustare de asset-uri 2D/3D folosind AI (Midjourney, DALL-E, etc.).*
-- *Generarea puzzle-urilor sau crearea de backend logic.*
-- *Brainstorming pentru designul camerei sau flow-ul jocului.*
-- *Scrierea scripturilor de Backend (Node.js/Python).*
+### Alex (Dezvoltare Agenti Inteligenti, Integrare LLM si Dificultate Dinamica)
+In rolul meu de dezvoltator axat pe AI si designul dinamic al jocului, am utilizat asistentii AI pentru a scrie codul de baza si structura celor 3 agenti inteligenti: **HintAgent.gd**, **SaboteurAgent.gd** si **DifficultyAgent.gd**.
+
+**Contributii cu asistenta AI:**
+- **Scrierea Codului pentru Agentii LLM (`HintAgent.gd`, `SaboteurAgent.gd`, `DifficultyAgent.gd`):** Am generat in intregime structura si logica de baza a celor trei agenti prin intermediul asistentului AI. Acesta a scris logica de interogare HTTP catre instanta locala de Ollama (`llama3:8b`), gestionarea structurilor asincrone (folosind `await` si semafoare pentru prevenirea coliziunilor la interogari simultane) si configurarea prompt-urilor de sistem pentru a genera raspunsuri valide in format JSON.
+- **Implementarea Dificultatii Dinamice:** Am folosit AI pentru a genera algoritmul din `DifficultyAgent.gd` care scaleaza lungimea puzzle-urilor in functie de performanta jucatorilor, adaptand automat solutiile in memoria singleton-ului `PuzzleGen`.
+- **Refactorizarea Puzzles si Dynamic Fetching:** Asistentul AI a rescris metodele din `ColorButtonsPanel.gd` si `Numpad.gd` pentru a permite citirea dinamica a noilor solutii din `PuzzleGen` la fiecare interactiune, in loc sa le cache-uiasca in `_ready()`.
+- **Generarea Testelor Unitare si Pipeline CI/CD:** Am delegat AI-ului scrierea testelor unitare automate (`eval_hint_agent.gd`, `eval_saboteur_agent.gd`, `eval_difficulty_agent.gd`) pentru fiecare agent si integrarea lor in fisierul `.github/workflows/ci.yml`.
+
+**Activitate Manuala (Fara asistenta AI):**
+- **Testare Manuala in Joc:** Am rulat repetat jocul local pentru a testa manual comportamentul fizic al actuatorilor agentilor (ex: pozitionarea textului de sange 3D pe perete la nivelul ochilor, modul in care se declanseaza flickering-ul pe CeilingLights sau cum se aude spatial audio-ul pentru pasi si usi trantite).
+- **Calibrarea Timpilor de Cooldown si Echilibrare:** Am ajustat manual valorile de cooldown (ex: 60 secunde pentru HintAgent pentru a evita spamarea, logica de reducere a cooldown-ului Saboteur la 10 secunde in caz de greseli repetate) pentru a asigura o experienta de joc tensionata, dar corecta.
+- **Configurarea Manuala a Fallback-urilor Statice:** Am creat manual toate dictionarele cu indicii statice si sperieturi de rezerva (`FALLBACK_HINTS`, `FALLBACK_ACTIONS`) folosite de joc in cazurile in care instanta locala de Ollama nu ruleaza sau raspunde prea greu.
+- **Tuning-ul Parametrilor LLM:** Am testat si setat manual valorile de `temperature` din cererile HTTP (ex. 0.9 pentru Saboteur pentru variabilitate, 0.3 pentru Hint pentru precizie si 0.1 pentru DifficultyAgent pentru predictibilitate) pentru a obtine cel mai bun raport intre viteza si corectitudine.
+- **Validarea si Parsarea Structurilor JSON:** Am scris manual mecanismele de siguranta pentru parsarea raspunsurilor brute de la LLM (`JSON.parse_string()`), asigurandu-ma ca jocul nu crasheaza daca LLM-ul intoarce din greseala caractere in plus sau formate incorecte.
 
 ### [Nume Membru 3] (Completare necesară)
 *Descrie aici cum ai folosit tool-urile de AI. Exemple:*

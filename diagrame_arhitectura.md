@@ -33,6 +33,13 @@ classDiagram
         +play_error()
     }
 
+    class NetworkManager {
+        <<Singleton>>
+        +host_game()
+        +join_game(ip)
+        +signal peer_connected(id)
+    }
+
     class RoomGeneratorAgent {
         +generate_rooms(seed)
         +place_on_wall()
@@ -55,11 +62,45 @@ classDiagram
         +receive_3d_click(hit_position)
     }
 
+    class HintAgent {
+        <<Singleton>>
+        +String model_name
+        +Dictionary wrong_attempts
+        +register_wrong_attempt(puzzle_type)
+        +get_telemetry() Dictionary
+        -_call_ollama(prompt)
+    }
+
+    class SaboteurAgent {
+        <<Singleton>>
+        +float tension
+        +register_wrong_attempt(puzzle_type, player)
+        -_call_ollama(prompt)
+        -_trigger_scare(action, target)
+    }
+
+    class DifficultyAgent {
+        <<Singleton>>
+        +float game_start_time
+        -_on_stage_changed(new_stage)
+        -_evaluate_difficulty(stage)
+        -_apply_difficulty(stage, decision)
+    }
+
     RoomGeneratorAgent --> PuzzleGen : Solicită generare procedurale
     PlayerController --> GameEvents : Ascultă semnale / Declanșează
     PlayerController --> PuzzleBase : RayCast 3D Interaction
     PuzzleBase --> GameEvents : Verifică condiții / Emite semnale
     PuzzleBase --> AudioManager : Trigger SFX
+
+    HintAgent --> GameEvents : Ascultă stage_changed / drawer_opened
+    SaboteurAgent --> GameEvents : Ascultă stage_changed
+    DifficultyAgent --> GameEvents : Ascultă stage_changed
+
+    SaboteurAgent --> HintAgent : Verifică dacă LLM e ocupat (is_waiting_for_ollama)
+    DifficultyAgent --> HintAgent : Citește wrong_attempts pentru evaluare
+    DifficultyAgent --> PuzzleGen : Modifică active_puzzles (soluție mărită/micșorată)
+    PlayerController --> NetworkManager : Inițiază conexiune multiplayer
 ```
 
 ## 2. Diagrama de Flux a Jocului (Workflow / State Diagram)
@@ -86,14 +127,14 @@ stateDiagram-v2
         Panou_Culori_Aprins : Se aprinde Hint-ul de culori (Room A)
     }
     
-    Faza15_Sertar --> Faza2_Seif : P2 introduce codul de culori
+    Faza15_Sertar --> Faza2_Seif : [DifficultyAgent evalueaza Faza 1 & ajusteaza secventa de culori] -> P2 introduce culorile
     
     state Faza2_Seif {
         Seif_Deschis : Se deschide Seiful (Room B)
         Terminal_ON : Se aprinde Terminalul PC (Room A)
     }
     
-    Faza2_Seif --> Faza3_Hacking : P1 sparge firewall-ul pe PC
+    Faza2_Seif --> Faza3_Hacking : [DifficultyAgent evalueaza Faza 2 & ajusteaza PIN-ul final] -> P1 sparge firewall-ul pe PC
     
     state Faza3_Hacking {
         Terminal_Hacked : Bypass Firewall -> Decrypt -> Core

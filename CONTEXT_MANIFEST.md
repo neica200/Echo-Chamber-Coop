@@ -29,6 +29,7 @@
     *   `math_puzzle`: Procedural item count (books + chairs) logic.
 3.  **Hint Agent (`src/Scripts/Agents/HintAgent.gd`):** Fully implemented context-aware feedback system. Tracks player positions, stage changes, and wrong attempt counts to generate hints via local Ollama LLM queries (optimized for speed and low temperature) or fallback static suggestions. Triggers environmental events such as light flickering, shaking furniture, and spawning 3D blood text decals.
 4.  **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** An LLM-based atmospheric horror director. Monitors player idle time and tension (0.0→1.0) and queries Ollama (`llama3:8b`) to dynamically select scare events. Coordinates with `HintAgent` to prevent concurrent Ollama requests. Exposes `register_wrong_attempt(puzzle_type, player_name)` — called by all puzzle scripts (`FuseBox3x3.gd`, `ColorButtonsPanel.gd`, `Terminal.gd`, `Numpad.gd`) on each mistake to immediately spike tension and panic, and optionally reduce the scare cooldown to 10s. Actuators: `DOOR_SLAM` (3D positional audio thud + camera shake), `FOOTSTEPS` (panning spatial audio), `VENTILATION_SHUTDOWN` (background music fade), `LIGHT_BLACKOUT` (via `GameEvents.room_lights_toggled`), `PLAYER_ISOLATION` (disables movement + glitch overlay for 6s), `ASYMMETRIC_WHISPER` (creepy text shown to one player only), `SPAWN_FAKE_CLUE` (instantiates `Note.tscn` with wrong puzzle instructions, auto-destroys after 25s).
+5.  **Difficulty Agent (`src/Scripts/Agents/DifficultyAgent.gd`):** An LLM-based dynamic difficulty director. Subscribes to `GameEvents.stage_changed` to evaluate team performance (time elapsed and total mistakes fetched from `HintAgent`) at the transitions to Stage 2 and Stage 3. Queries Ollama (`llama3:8b`) to dynamically adjust the difficulty of subsequent puzzles (extending/shortening `color_sequence` or scaling the final `numpad_puzzle` PIN code between 3 and 6 digits).
 
 ### Puzzle & Interactive Entities (`src/Scripts/Puzzles/`)
 *   **`FuseBox3x3.gd` & `FuseButton.gd`:** Grid-based fuse box in Room B. Solving it turns on the lights in both rooms.
@@ -48,18 +49,21 @@
 ### Automated Testing & CI/CD
 *   **Hint Agent Evaluation ([eval_hint_agent.gd](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/tests/eval_hint_agent.gd)):** A headless test runner verifying the HintAgent's prompt generation format, static fallback dictionaries, and wrong-attempt state tracking logic.
 *   **Saboteur Agent Evaluation ([eval_saboteur_agent.gd](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/tests/eval_saboteur_agent.gd)):** A headless test runner verifying the SaboteurAgent's prompt telemetry, JSON schema parsing, static action fallbacks per stage, and fallback fake clues.
-*   **CI/CD Workflow ([ci.yml](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/.github/workflows/ci.yml)):** Automatically runs Express backend dependency checks/tests, runs `gdlint` on GDScript files, and executes the Godot test suite (`eval_hint_agent.gd` and `eval_saboteur_agent.gd`) in headless mode.
+*   **Difficulty Agent Evaluation ([eval_difficulty_agent.gd](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/tests/eval_difficulty_agent.gd)):** A headless test runner verifying the DifficultyAgent's mistakes accumulation, prompt creation, and response parsing.
+*   **CI/CD Workflow ([ci.yml](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/.github/workflows/ci.yml)):** Automatically runs Express backend dependency checks/tests, runs `gdlint` on GDScript files, and executes the Godot test suite (`eval_hint_agent.gd`, `eval_saboteur_agent.gd`, and `eval_difficulty_agent.gd`) in headless mode.
 *   **Running Tests Locally:**
     *   From the repository root:
         ```bash
         godot --headless --path src -s tests/eval_hint_agent.gd
         godot --headless --path src -s tests/eval_saboteur_agent.gd
+        godot --headless --path src -s tests/eval_difficulty_agent.gd
         ```
     *   From the `src/` directory:
         ```bash
         cd src
         godot --headless -s ../tests/eval_hint_agent.gd
         godot --headless -s ../tests/eval_saboteur_agent.gd
+        godot --headless -s ../tests/eval_difficulty_agent.gd
         ```
     *(If the `godot` command is not in your system's PATH, substitute it with the absolute path to your Godot executable, e.g. `& "C:\Path\To\Godot_v4.x.exe"` in PowerShell).*
 
@@ -99,17 +103,16 @@ graph TD
     *   **Procedural Gen Systems:** Grid generator for rooms (`RoomGeneratorAgent.gd`) and data structures for asymmetric puzzles (`PuzzleGeneratorAgent.gd`).
     *   **Puzzle UI & Mechanisms:** Grid buttons, interactive computer terminals, keypad UI, color board, and drawer lock interactions.
     *   **Authentication API:** Backend registration and login endpoints.
-    *   **Dynamic Hint System (`src/Scripts/Agents/HintAgent.gd`):** A context-aware system that tracks player positions, failed attempts, and puzzle states. Uses local Ollama LLM queries (optimized for low temperatures and token lengths) with deterministic static fallbacks. Triggers environment changes (flickering lights via `CeilingLightLogic.gd`, shaking furniture, and spawning wide, auto-fading 3D blood text hints).
+    *   **Dynamic Hint System (`src/Scripts/Agents/HintAgent.gd`):** A context-aware system that tracks player positions, failed attempts, and puzzle states. Uses local Ollama LLM queries with deterministic static fallbacks.
     *   **Networking & Lobby Core:** Autoload singleton `NetworkManager.gd` for creating hosts/clients and spawning networked players.
     *   **Multiplayer Player Controller:** Integrated MultiplayerSynchronizer checks to restrict movement and camera control to local authorities.
     *   **PBR Materials Override:** `PBRMaterialManager.gd` ensuring correct visual properties for all procedural elements.
-    *   **Headless Test Suite:** `eval_hint_agent.gd` and GitHub Actions `.github/workflows/ci.yml` verifying linting and agent logic.
-    *   **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** LLM-based Paranoia System that monitors player stagnation, tension, and panic levels. Triggers dynamic horror events (door slams, footsteps, blackouts, asymmetric whispers, fake clue notes, player isolation) via Ollama, with static fallbacks. Coordinates Ollama access with `HintAgent` to prevent concurrent API calls.
+    *   **Headless Test Suite:** `eval_hint_agent.gd`, `eval_saboteur_agent.gd`, `eval_difficulty_agent.gd` and GitHub Actions `.github/workflows/ci.yml`.
+    *   **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** LLM-based atmospheric director that monitors player idle time and tension. Triggers dynamic scare events (blackouts, door slams, isolation, whispers, fake clues) using Ollama.
+    *   **Dynamic Difficulty Scaling (`src/Scripts/Agents/DifficultyAgent.gd`):** LLM-based director adjusting puzzle sizes (color sequence length, PIN code length) at runtime based on performance.
 *   **🟡 In Progress:**
     *   **Networking & Sync:** Connecting local puzzle state changes (e.g. lights on, drawer open, safe open) across clients using Godot P2P multiplayer.
 *   **🔴 Planned / Missing:**
-    *   **The Saboteur (Paranoia System):** An atmospheric director monitoring game pacing. Triggers distant door slams, 3D spatial footstep SFX, and stops ventilation systems during prolonged quiet periods.
-    *   **Dynamic Difficulty Scaling:** Adapts challenge levels dynamically (e.g., if a team solves puzzles too quickly, subsequent codes like the final Numpad PIN dynamically switch to a more complex 6-digit format).
     *   **Time-Attack "Bomb" Event:** A mid-game emergency event triggering red alarm sirens and requiring both players to coordinate and cut specific panel wires simultaneously within a 3-minute window.
     *   **Leaderboard & SaaS Dashboard:** Connecting the backend Express API to Godot to log escape times.
     *   **Proximity Voice Chat:** 3D positional audio.

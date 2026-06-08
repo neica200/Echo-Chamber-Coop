@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://pqkpr1iur23u"]
+
+[ext_resource type="Script" uid="uid://btjuldnq7qocu" path="res://Scenes/lobby.gd" id="1_bpe3w"]
+
+[node name="Lobby" type="Control" unique_id=1873551200]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bpe3w")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=2016776079]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1497499650]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+
+[node name="Titlu" type="Label" parent="CenterContainer/VBoxContainer" unique_id=150504200]
+layout_mode = 2
+text = "Echo Chamber Lobby"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1496811041]
+layout_mode = 2
+alignment = 1
+
+[node name="IP" type="LineEdit" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1221806657]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+placeholder_text = "Introdu IP (ex: 192.168.1.1)"
+max_length = 5
+
+[node name="Join" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1617059973]
+layout_mode = 2
+text = "Join"
+
+[node name="Host" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1417662042]
+layout_mode = 2
+text = "Host Game"
+
+[node name="Stare" type="Label" parent="CenterContainer/VBoxContainer" unique_id=126436688]
+layout_mode = 2
+text = "Deconectat"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/Join" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/Host" to="." method="_on_host_pressed"]

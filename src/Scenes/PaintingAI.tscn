@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://c7ym2e187taj2"]
+
+[ext_resource type="Script" uid="uid://b18a2dekqu2sa" path="res://Scripts/Networking/PaintingAI.gd" id="1_ffqnj"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_ir2la"]
+
+[node name="PaintingAi" type="MeshInstance3D" unique_id=894477231]
+mesh = SubResource("QuadMesh_ir2la")
+script = ExtResource("1_ffqnj")

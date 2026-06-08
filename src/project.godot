@@ -27,6 +27,7 @@ AudioManager="*res://Scripts/Core/AudioManager.gd"
 HintAgent="*res://Scripts/Agents/HintAgent.gd"
 PBRMaterialManager="*res://Scripts/Core/PBRMaterialManager.gd"
 SaboteurAgent="*res://Scripts/Agents/SaboteurAgent.gd"
+DifficultyAgent="*res://Scripts/Agents/DifficultyAgent.gd"
 
 [input]
 

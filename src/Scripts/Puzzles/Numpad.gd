@@ -35,6 +35,12 @@ func button_pressed(digit: String):
 		
 	current_input += digit
 	AudioManager.play_click()
+	
+	# Fetch dynamic în caz că DifficultyAgent a modificat lungimea (Faza 3)
+	var data = PuzzleGen.get_puzzle_data("numpad_puzzle")
+	if data.has("solution"):
+		target_code = str(data["solution"])
+		
 	print("[Numpad] Ai tastat până acum: ", current_input)
 	
 	# Verificăm dacă jucătorul a băgat toate cele 4 cifre

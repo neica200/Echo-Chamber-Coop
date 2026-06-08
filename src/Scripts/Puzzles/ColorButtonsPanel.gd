@@ -34,6 +34,12 @@ func _ready():
 func button_pressed(color: String):
 	current_input.append(color)
 	AudioManager.play_click()
+	
+	# Fetch dynamic în caz că DifficultyAgent a modificat lungimea (Faza 2)
+	var data = PuzzleGen.get_puzzle_data("color_sequence")
+	if data.has("solution"):
+		target_sequence = data["solution"]
+		
 	print("[Culori] Ai apăsat: ", color, " | Secvență curentă: ", current_input)
 	
 	# Verificăm dacă a greșit undeva

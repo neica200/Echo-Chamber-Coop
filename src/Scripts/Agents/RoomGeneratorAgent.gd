@@ -284,13 +284,20 @@ func _build_cell(x: int, y: int):
 	var cell_data = grid_cells[x][y]
 	var cell_root = Node3D.new()
 	cell_root.name = "Cell_" + str(x) + "_" + str(y)
-	cell_root.position = Vector3(x * room_size.x, 0, y * room_size.y)
+	
+	var current_room_size = room_size
+	var x_offset = 0.0
+	if cell_data["type"] == "Corridor":
+		current_room_size.x = 4.0
+		x_offset = 4.0
+		
+	cell_root.position = Vector3(x * room_size.x + x_offset, 0, y * room_size.y)
 	add_child(cell_root)
 	
 	# Probe de reflexie ca să nu mai fie obiectele metalice negre
 	var probe = ReflectionProbe.new()
-	probe.position = Vector3(room_size.x / 2.0, 1.5, room_size.y / 2.0)
-	probe.size = Vector3(room_size.x, 4.0, room_size.y)
+	probe.position = Vector3(current_room_size.x / 2.0, 1.5, current_room_size.y / 2.0)
+	probe.size = Vector3(current_room_size.x, 4.0, current_room_size.y)
 	probe.intensity = 0.8
 	cell_root.add_child(probe)
 	
@@ -298,15 +305,15 @@ func _build_cell(x: int, y: int):
 	if floor_scene:
 		var floor_instance = floor_scene.instantiate()
 		cell_root.add_child(floor_instance)
-		floor_instance.position = Vector3(room_size.x / 2.0, -0.5, room_size.y / 2.0)
-		floor_instance.scale = Vector3(room_size.x, 1, room_size.y)
+		floor_instance.position = Vector3(current_room_size.x / 2.0, -0.5, current_room_size.y / 2.0)
+		floor_instance.scale = Vector3(current_room_size.x, 1, current_room_size.y)
 		PBRMaterialManager.apply_material_to_mesh(floor_instance, "wood_floor")
 		
 		# Tavanul
 		var ceiling_instance = floor_scene.instantiate()
 		cell_root.add_child(ceiling_instance)
-		ceiling_instance.position = Vector3(room_size.x / 2.0, 5.0, room_size.y / 2.0)
-		ceiling_instance.scale = Vector3(room_size.x, 1.0, room_size.y)
+		ceiling_instance.position = Vector3(current_room_size.x / 2.0, 5.0, current_room_size.y / 2.0)
+		ceiling_instance.scale = Vector3(current_room_size.x, 1.0, current_room_size.y)
 		PBRMaterialManager.apply_material_to_mesh(ceiling_instance, "ceiling")
 		
 	var wall_length = 4.0
@@ -316,41 +323,61 @@ func _build_cell(x: int, y: int):
 	var z_pos: float
 	
 	# North (z=0) - Generăm doar dacă suntem la marginea de sus (y == 0) ca să evităm suprapunerile (Z-fighting)
-	if y == 0:
+	if y == 0 or cell_data["type"] == "RoomB":
 		x_pos = wall_length / 2.0
-		while x_pos < room_size.x:
-			if cell_data["doors"]["N"] and abs(x_pos - room_size.x/2.0) < 0.1:
+		while x_pos < current_room_size.x:
+			if cell_data["doors"]["N"] and abs(x_pos - current_room_size.x/2.0) < 0.1:
 				_place_door(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
 			else:
 				_place_wall(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
 			x_pos += wall_length
 
-	# South (z=room_size.y)
-	x_pos = wall_length / 2.0
-	while x_pos < room_size.x:
-		if cell_data["doors"]["S"] and abs(x_pos - room_size.x/2.0) < 0.1:
-			_place_door(cell_root, Vector3(x_pos, 0, room_size.y), Vector3(0, 0, 0)) # Flipped to show handles
-		else:
-			_place_wall(cell_root, Vector3(x_pos, 0, room_size.y), Vector3(0, 180, 0))
-		x_pos += wall_length
+	# South (z=current_room_size.y)
+	if cell_data["type"] != "Corridor":
+		x_pos = wall_length / 2.0
+		while x_pos < current_room_size.x:
+			if cell_data["doors"]["S"] and abs(x_pos - current_room_size.x/2.0) < 0.1:
+				_place_door(cell_root, Vector3(x_pos, 0, current_room_size.y), Vector3(0, 0, 0)) # Flipped to show handles
+			else:
+				_place_wall(cell_root, Vector3(x_pos, 0, current_room_size.y), Vector3(0, 180, 0))
+			x_pos += wall_length
 
 	# West (x=0) - Generăm doar dacă suntem la marginea din stânga (x == 0)
-	if x == 0:
+	if x == 0 or cell_data["type"] == "Corridor":
 		z_pos = wall_length / 2.0
-		while z_pos < room_size.y:
-			if cell_data["doors"]["W"] and abs(z_pos - room_size.y/2.0) < 0.1:
+		while z_pos < current_room_size.y:
+			if cell_data["doors"]["W"] and abs(z_pos - current_room_size.y/2.0) < 0.1:
 				_place_door(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
 			else:
 				_place_wall(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
 			z_pos += wall_length
 
-	# East (x=room_size.x)
+	# East (x=current_room_size.x)
 	z_pos = wall_length / 2.0
-	while z_pos < room_size.y:
-		if cell_data["doors"]["E"] and abs(z_pos - room_size.y/2.0) < 0.1:
-			_place_door(cell_root, Vector3(room_size.x, 0, z_pos), Vector3(0, -90, 0))
+	while z_pos < current_room_size.y:
+		if cell_data["doors"]["E"] and abs(z_pos - current_room_size.y/2.0) < 0.1:
+			_place_door(cell_root, Vector3(current_room_size.x, 0, z_pos), Vector3(0, -90, 0))
+		elif cell_data["type"] == "Corridor" and abs(z_pos - current_room_size.y/2.0) < 0.1:
+			_place_door(cell_root, Vector3(current_room_size.x, 0, z_pos), Vector3(0, -90, 0), preload("res://Scenes/Rooms/ExitDoor.tscn"), preload("res://Scripts/Environment/ExitDoorLogic.gd"))
+			
+			# Peretele strălucitor din spatele ușii
+			var shiny_wall = wall_scene.instantiate()
+			cell_root.add_child(shiny_wall)
+			shiny_wall.position = Vector3(current_room_size.x + 1.0, 0, z_pos) # 1m în spatele ușii
+			shiny_wall.rotation_degrees = Vector3(0, -90, 0)
+			shiny_wall.scale = Vector3(1.0, 5.0 / 3.0, 1.0)
+			# Creăm un material complet alb și emițător de lumină divină
+			var mat = StandardMaterial3D.new()
+			mat.albedo_color = Color(1, 1, 1, 1)
+			mat.emission_enabled = true
+			mat.emission = Color(0.8, 0.9, 1.0, 1) # Lumină alb-albăstruie
+			mat.emission_energy_multiplier = 4.0
+			
+			# Aplicăm materialul pe mesh-ul copil al peretelui
+			for child in shiny_wall.find_children("*", "MeshInstance3D", true, false):
+				child.material_override = mat
 		else:
-			_place_wall(cell_root, Vector3(room_size.x, 0, z_pos), Vector3(0, -90, 0))
+			_place_wall(cell_root, Vector3(current_room_size.x, 0, z_pos), Vector3(0, -90, 0))
 		z_pos += wall_length
 		
 	# Lampa de tavan
@@ -590,6 +617,22 @@ func _decorate_manual(parent: Node3D, room_type: String):
 			box.rotation_degrees.y = rng.randf_range(0, 360)
 			_auto_generate_collision(box)
 			PBRMaterialManager.apply_material_to_mesh(box, "box")
+			
+	elif room_type == "Corridor":
+		# Punem cele 2 manivele de exit lângă ușa finală (peretele de Est)
+		var lever1 = preload("res://Scenes/Rooms/ExitLever.tscn").instantiate()
+		parent.add_child(lever1)
+		lever1.position = Vector3(3.7, 1.5, 4.0) # La stânga ușii, scos mai mult din perete
+		lever1.rotation_degrees.y = -90
+		lever1.lever_id = 1
+		
+		var lever2 = preload("res://Scenes/Rooms/ExitLever.tscn").instantiate()
+		parent.add_child(lever2)
+		lever2.position = Vector3(3.7, 1.5, 8.0) # La dreapta ușii, scos mai mult din perete
+		lever2.rotation_degrees.y = -90
+		lever2.lever_id = 2
+		
+		print("[RoomGenerator] Am plasat cele 2 manivele de Exit în Hol.")
 
 func _auto_generate_collision(node: Node3D):
 	var has_collision = false
@@ -632,13 +675,17 @@ func _place_wall(parent: Node3D, pos: Vector3, rot: Vector3):
 	wall.scale = Vector3(1.0, 5.0 / 3.0, 1.0)
 	PBRMaterialManager.apply_material_to_mesh(wall, "wall")
 
-func _place_door(parent: Node3D, pos: Vector3, rot: Vector3):
-	if door_scene:
-		var door = door_scene.instantiate()
+func _place_door(parent: Node3D, pos: Vector3, rot: Vector3, custom_door_scene: PackedScene = null, custom_script: Script = null):
+	var scene_to_use = custom_door_scene if custom_door_scene else door_scene
+	if scene_to_use:
+		var door = scene_to_use.instantiate()
+		if custom_script:
+			door.set_script(custom_script)
+		else:
+			door.set_script(preload("res://Scripts/Environment/DoorLogic.gd"))
 		parent.add_child(door)
 		door.position = pos
 		door.rotation_degrees = rot
-		door.set_script(preload("res://Scripts/Environment/DoorLogic.gd"))
 		PBRMaterialManager.apply_material_to_mesh(door, "door")
 		
 		# Ușa (ArmoredDoor) are 2.2m lățime totală și 3.2m înălțime totală!
@@ -845,18 +892,18 @@ func place_table_set(parent: Node3D, grid: Array[Vector3], fixed_rot: float = -1
 	table.set_script(preload("res://Scripts/Environment/LockedDrawer.gd"))
 	if table.has_method("_ready"): table._ready()
 	
-	if note_scene:
-		var note = note_scene.instantiate()
-		note.set_script(preload("res://Scripts/Puzzles/Note.gd"))
-		table.add_child(note)
-		note.position = Vector3(-0.6, 1.2, 0.2) # Coborâtă la 1.28
-		note.name = "Note"
-		note.visible = false 
-		var focus_note = Marker3D.new()
-		focus_note.name = "FocusPoint"
-		focus_note.position = Vector3(0, 0.5, 0.3)
-		focus_note.rotation_degrees.x = -45
-		note.add_child(focus_note)
+	#if note_scene:
+	#	var note = note_scene.instantiate()
+	#	note.set_script(preload("res://Scripts/Puzzles/Note.gd"))
+	#	table.add_child(note)
+	#	note.position = Vector3(-0.6, 1.2, 0.2) # Coborâtă la 1.28
+	#	note.name = "Note"
+	#	note.visible = false 
+	#	var focus_note = Marker3D.new()
+	#	focus_note.name = "FocusPoint"
+	#	focus_note.position = Vector3(0, 0.5, 0.3)
+	#	focus_note.rotation_degrees.x = -45
+	#	note.add_child(focus_note)
 		
 	if mug_scene:
 		var mug = mug_scene.instantiate()
@@ -879,15 +926,15 @@ func place_pedestal_set(parent: Node3D, grid: Array[Vector3]) -> void:
 	parent.add_child(pedestal)
 	pedestal.position = ped_pos
 	
-	if note_scene:
-		var note = note_scene.instantiate()
-		pedestal.add_child(note)
-		note.position = Vector3(0, 1.01, 0)
-		var focus_note = Marker3D.new()
-		focus_note.name = "FocusPoint"
-		focus_note.position = Vector3(0, 0.5, 0.3)
-		focus_note.rotation_degrees.x = -45
-		note.add_child(focus_note)
+#	if note_scene:
+#		var note = note_scene.instantiate()
+#		pedestal.add_child(note)
+#		note.position = Vector3(0, 1.01, 0)
+#		var focus_note = Marker3D.new()
+#		focus_note.name = "FocusPoint"
+#		focus_note.position = Vector3(0, 0.5, 0.3)
+#		focus_note.rotation_degrees.x = -45
+#		note.add_child(focus_note)
 		
 	if book_scene:
 		for i in range(2):

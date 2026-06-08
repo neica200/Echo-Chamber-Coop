@@ -19,6 +19,9 @@ var original_camera_parent: Node3D
 var inventory: Array[String] = []
 var inventory_label: Label
 
+# --- FOOTSTEP SYSTEM ---
+var walk_distance: float = 0.0
+
 func _ready():
 	if is_active:
 		camera.make_current()
@@ -115,6 +118,14 @@ func _physics_process(delta):
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	move_and_slide()
+	
+	if is_on_floor() and direction.length() > 0.1:
+		walk_distance += velocity.length() * delta
+		if walk_distance > 1.8: # Play sound every 1.8 units walked
+			walk_distance = 0.0
+			_play_footstep()
+	else:
+		walk_distance = 0.0
 	
 	# Am mutat interacțiunea în _unhandled_input (pe Click Stânga)
 	# Dar lăsăm și E funcțional în caz că userul îl apasă din obișnuință
@@ -238,3 +249,22 @@ func update_inventory_ui():
 		inventory_label.text = "Inventar: Gol"
 	else:
 		inventory_label.text = "Inventar:\n- " + "\n- ".join(inventory)
+
+# --- SOUND SYSTEM ---
+func _play_footstep():
+	var is_rug = false
+	var space_state = get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(global_position, global_position + Vector3(0, -1.5, 0))
+	query.collide_with_areas = true
+	var result = space_state.intersect_ray(query)
+	
+	if result and result.collider:
+		var current = result.collider
+		while current:
+			if "Rug" in current.name:
+				is_rug = true
+				break
+			current = current.get_parent()
+			
+	if AudioManager.has_method("play_footstep"):
+		AudioManager.play_footstep(is_rug)

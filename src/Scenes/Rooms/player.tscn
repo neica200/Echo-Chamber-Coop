@@ -15,3 +15,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="RayCast3D" type="RayCast3D" parent="Camera3D" unique_id=2043152015]
 target_position = Vector3(0, 0, -3)
+

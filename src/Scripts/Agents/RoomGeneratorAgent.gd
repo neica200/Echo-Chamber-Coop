@@ -26,7 +26,7 @@ class_name RoomGeneratorAgent
 @export var room_size: Vector2 = Vector2(12, 12)
 
 # Grid Layout variables
-const GRID_W = 3
+const GRID_W = 1
 const GRID_H = 3
 var grid_cells = [] # Array de dicționare pentru fiecare celulă: { "x", "y", "type": "A" / "B" / "C", "connected": false }
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -49,15 +49,15 @@ func _ready() -> void:
 	# --- ENVIRONMENT ÎNTUNECAT & POST PROCESSING ---
 	var env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.01, 0.01, 0.02) # Beznă
+	env.background_color = Color(0.005, 0.005, 0.01) # Beznă totală
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.02, 0.02, 0.03) # Lumină f slabă
+	env.ambient_light_color = Color(0.01, 0.01, 0.015) # Lumină abia perceptibilă
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES # Cinematic
 	
 	# VFX: Volumetrics
 	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.015
-	env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
+	env.volumetric_fog_density = 0.002 # Redus de la 0.015 pentru a nu orbi jucătorul
+	env.volumetric_fog_albedo = Color(0.1, 0.1, 0.12) # Mai întunecat pentru a evita strălucirea exagerată
 	
 	# VFX: Post Processing
 	env.ssao_enabled = true
@@ -145,6 +145,14 @@ func generate_rooms(seed_value: int) -> void:
 			player1.global_position = room_a_spawn.global_position
 			player1.rotation_degrees = room_a_spawn.rotation_degrees
 			player1.is_active = true
+			
+			var light = OmniLight3D.new()
+			light.light_color = Color(1.0, 0.95, 0.85)
+			light.light_energy = 0.3 # Lanternă redusă
+			light.shadow_enabled = true
+			light.omni_range = 6.0 # Rază mai mică
+			light.omni_attenuation = 2.0
+			player1.get_node("Camera3D").add_child(light)
 
 		if room_b_spawn:
 			player2 = player_scene.instantiate()
@@ -152,9 +160,74 @@ func generate_rooms(seed_value: int) -> void:
 			add_child(player2)
 			player2.global_position = room_b_spawn.global_position
 			player2.is_active = false
+			
+			var light2 = OmniLight3D.new()
+			light2.light_color = Color(1.0, 0.95, 0.85)
+			light2.light_energy = 0.3 # Lanternă redusă
+			light2.shadow_enabled = true
+			light2.omni_range = 6.0 # Rază mai mică
+			light2.omni_attenuation = 2.0
+			player2.get_node("Camera3D").add_child(light2)
 		
 		current_player = 1
 		player1.get_node("Camera3D").make_current()
+
+	_setup_moody_environment()
+
+func _setup_moody_environment():
+	# Creăm un environment "stale air" / moody
+	var env = Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.02, 0.02, 0.03)
+	
+	# Fog normal (dacă vrei limitarea vizibilității în depărtare)
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.1, 0.08, 0.07)
+	env.fog_density = 0.02
+	
+	# Volumetric Fog dezactivat deoarece nu funcționează pe profilul Compatibility/Mobile
+	env.volumetric_fog_enabled = false
+	
+	# Ajustăm ambientul
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.05, 0.04, 0.06)
+	
+	var world_env = WorldEnvironment.new()
+	world_env.environment = env
+	world_env.name = "MoodyWorldEnvironment"
+	add_child(world_env)
+	
+	# ADEVĂRATUL EFECT DE AER PRĂFUIT: Particule plutitoare (Dust Motes)
+	var particles = GPUParticles3D.new()
+	var process_mat = ParticleProcessMaterial.new()
+	process_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	process_mat.emission_box_extents = Vector3(12.0, 3.0, 36.0) # Să acopere absolut toate camerele (A, Hol, B)
+	process_mat.gravity = Vector3(0, -0.05, 0) # Cădere foarte lentă
+	process_mat.direction = Vector3(1, 0, 1)
+	process_mat.spread = 180.0
+	process_mat.initial_velocity_min = 0.05
+	process_mat.initial_velocity_max = 0.1
+	process_mat.scale_min = 0.5
+	process_mat.scale_max = 1.5
+	
+	var pass_mat = StandardMaterial3D.new()
+	pass_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	pass_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	pass_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	pass_mat.albedo_color = Color(0.8, 0.7, 0.6, 0.06) # Mult mai transparent și subtil
+	
+	var quad = QuadMesh.new()
+	quad.size = Vector2(0.015, 0.015)
+	quad.material = pass_mat
+	
+	particles.process_material = process_mat
+	particles.draw_pass_1 = quad
+	particles.amount = 1500 # Compensăm mărirea spațiului
+	particles.lifetime = 10.0
+	particles.position = Vector3(6.0, 2.0, 18.0) # Pus în mijlocul hărții (în Hol) ca să bată în ambele camere
+	particles.name = "DustMotes"
+	
+	add_child(particles)
 
 func _generate_grid_layout():
 	grid_cells.clear()
@@ -165,11 +238,15 @@ func _generate_grid_layout():
 			col.append({ "type": "Empty", "visited": false, "doors": {"N": false, "S": false, "E": false, "W": false} })
 		grid_cells.append(col)
 	
-	# Alegem random o celulă de start pentru Room A și una pentru Room B
-	var a_pos = Vector2(rng.randi_range(0, GRID_W-1), rng.randi_range(0, GRID_H-1))
-	var b_pos = Vector2(rng.randi_range(0, GRID_W-1), rng.randi_range(0, GRID_H-1))
-	while b_pos == a_pos:
+	# Pentru hol, plasăm camerele A și B la extreme
+	var a_pos = Vector2(0, 0)
+	var b_pos = Vector2(0, GRID_H-1)
+	
+	if GRID_W > 1: # Fallback în caz că revenim la labirint
+		a_pos = Vector2(rng.randi_range(0, GRID_W-1), rng.randi_range(0, GRID_H-1))
 		b_pos = Vector2(rng.randi_range(0, GRID_W-1), rng.randi_range(0, GRID_H-1))
+		while b_pos == a_pos:
+			b_pos = Vector2(rng.randi_range(0, GRID_W-1), rng.randi_range(0, GRID_H-1))
 		
 	grid_cells[a_pos.x][a_pos.y]["type"] = "RoomA"
 	grid_cells[b_pos.x][b_pos.y]["type"] = "RoomB"
@@ -235,32 +312,37 @@ func _build_cell(x: int, y: int):
 	var wall_length = 4.0
 	
 	# Pereți și Uși
-	# North (z=0)
-	var x_pos = wall_length / 2.0
-	while x_pos < room_size.x:
-		if cell_data["doors"]["N"] and abs(x_pos - room_size.x/2.0) < 0.1:
-			_place_door(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
-		else:
-			_place_wall(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
-		x_pos += wall_length
+	var x_pos: float
+	var z_pos: float
+	
+	# North (z=0) - Generăm doar dacă suntem la marginea de sus (y == 0) ca să evităm suprapunerile (Z-fighting)
+	if y == 0:
+		x_pos = wall_length / 2.0
+		while x_pos < room_size.x:
+			if cell_data["doors"]["N"] and abs(x_pos - room_size.x/2.0) < 0.1:
+				_place_door(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
+			else:
+				_place_wall(cell_root, Vector3(x_pos, 0, 0), Vector3(0, 0, 0))
+			x_pos += wall_length
 
 	# South (z=room_size.y)
 	x_pos = wall_length / 2.0
 	while x_pos < room_size.x:
 		if cell_data["doors"]["S"] and abs(x_pos - room_size.x/2.0) < 0.1:
-			_place_door(cell_root, Vector3(x_pos, 0, room_size.y), Vector3(0, 180, 0))
+			_place_door(cell_root, Vector3(x_pos, 0, room_size.y), Vector3(0, 0, 0)) # Flipped to show handles
 		else:
 			_place_wall(cell_root, Vector3(x_pos, 0, room_size.y), Vector3(0, 180, 0))
 		x_pos += wall_length
 
-	# West (x=0)
-	var z_pos = wall_length / 2.0
-	while z_pos < room_size.y:
-		if cell_data["doors"]["W"] and abs(z_pos - room_size.y/2.0) < 0.1:
-			_place_door(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
-		else:
-			_place_wall(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
-		z_pos += wall_length
+	# West (x=0) - Generăm doar dacă suntem la marginea din stânga (x == 0)
+	if x == 0:
+		z_pos = wall_length / 2.0
+		while z_pos < room_size.y:
+			if cell_data["doors"]["W"] and abs(z_pos - room_size.y/2.0) < 0.1:
+				_place_door(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
+			else:
+				_place_wall(cell_root, Vector3(0, 0, z_pos), Vector3(0, 90, 0))
+			z_pos += wall_length
 
 	# East (x=room_size.x)
 	z_pos = wall_length / 2.0
@@ -290,8 +372,9 @@ func _build_cell(x: int, y: int):
 		room_a_spawn.rotation_degrees.y = 180 # Orientat spre biroul de la Z=11.0
 		cell_root.add_child(room_a_spawn)
 		
-		var custom_table_grid: Array[Vector3] = [Vector3(6.0, 0, 11.0)] # Lipit de peretele din față
-		place_table_set(cell_root, custom_table_grid, 180.0)
+		# Biroul cu calculator și pad, mutat de pe ușă pe peretele de vest (X=0.8)
+		var custom_table_grid: Array[Vector3] = [Vector3(0.8, 0, 6.0)]
+		place_table_set(cell_root, custom_table_grid, 90.0)
 		
 		var color_hint = place_on_wall(color_hint_scene, wall_slots)
 		if color_hint: 
@@ -316,7 +399,10 @@ func _build_cell(x: int, y: int):
 			safe.set_script(preload("res://Scripts/Environment/DoorLogic.gd"))
 			PBRMaterialManager.apply_material_to_mesh(safe, "safe")
 		
-		var numpad = place_on_wall(numpad_scene, wall_slots)
+		# Punem numpad-ul manual lângă ușă (pe peretele nordic Z=0)
+		var numpad = numpad_scene.instantiate()
+		numpad.position = Vector3(8.0, 1.5, 0.26) # Lângă ușa de la X=6.0
+		numpad.rotation_degrees.y = 0
 		if numpad: 
 			numpad.set_script(preload("res://Scripts/Puzzles/Numpad.gd"))
 			cell_root.add_child(numpad)
@@ -326,7 +412,10 @@ func _build_cell(x: int, y: int):
 			f1.position = Vector3(0, 0, 0.6)
 			numpad.add_child(f1)
 		
-		var fusebox = place_on_wall(fuse_box_scene, wall_slots)
+		# Punem fusebox-ul (pad 3x3) pe peretele nordic, în stânga ușii
+		var fusebox = fuse_box_scene.instantiate()
+		fusebox.position = Vector3(4.0, 1.5, 0.26)
+		fusebox.rotation_degrees.y = 0
 		if fusebox: 
 			fusebox.set_script(preload("res://Scripts/Puzzles/FuseBox3x3.gd"))
 			cell_root.add_child(fusebox)
@@ -364,14 +453,18 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		bookcase.position = Vector3(11.2, 0, 10.0)
 		bookcase.rotation_degrees.y = -90
 		_auto_generate_collision(bookcase)
+		PBRMaterialManager.apply_material_to_mesh(bookcase, "furniture")
 		
 		# Covorul rotund în centrul camerei
 		if rug_scene:
 			var rug = rug_scene.instantiate()
+			rug.name = "Rug_A"
 			parent.add_child(rug)
 			rug.position = Vector3(6.0, 0.01, 6.0)
 			rug.rotation_degrees.y = rng.randf_range(0, 360)
 			rug.scale = Vector3(2.5, 2.5, 2.5) # Covor mărit
+			_auto_generate_collision(rug)
+			PBRMaterialManager.apply_material_to_mesh(rug, "rug")
 			
 		# Hârtii aruncate pe jos (2 seturi, unul în stânga camerei, unul în dreapta)
 		if papers_scene:
@@ -387,7 +480,7 @@ func _decorate_manual(parent: Node3D, room_type: String):
 			p2.rotation_degrees.y = rng.randf_range(0, 360)
 			p2.scale = Vector3(1.5, 1.5, 1.5)
 				
-		# Lumânări cu efect de flacără în colțul opus biroului (peretele din față, stânga)
+		# Lumânări cu efect de flacără în colțul de stânga-sus (X=1.5, Z=1.5)
 		if candles_scene:
 			var candles = candles_scene.instantiate()
 			parent.add_child(candles)
@@ -408,6 +501,7 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		closet1.position = Vector3(11.2, 0, 8.0)
 		closet1.rotation_degrees.y = -90
 		_auto_generate_collision(closet1)
+		PBRMaterialManager.apply_material_to_mesh(closet1, "furniture")
 		
 		# A doua bibliotecă în colțul dreapta-sus (X=11.2, Z=2.0)
 		var bookcase2 = bookcase_scene.instantiate()
@@ -415,6 +509,7 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		bookcase2.position = Vector3(11.2, 0, 2.0)
 		bookcase2.rotation_degrees.y = -90
 		_auto_generate_collision(bookcase2)
+		PBRMaterialManager.apply_material_to_mesh(bookcase2, "furniture")
 		
 		# Al doilea dulap (Closet) între bibliotecă și masă (Z=4.0)
 		var closet2 = closet_scene.instantiate()
@@ -422,14 +517,16 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		closet2.position = Vector3(11.2, 0, 4.0)
 		closet2.rotation_degrees.y = -90
 		_auto_generate_collision(closet2)
+		PBRMaterialManager.apply_material_to_mesh(closet2, "furniture")
 		
-		# Masa cu radioul lipită de peretele din dreapta, lângă bibliotecă
+		# Masa cu radioul lipită de peretele din dreapta, între dulapuri
 		var desk = desk_scene.instantiate()
 		parent.add_child(desk)
 		desk.position = Vector3(11.2, 0, 6.0)
-		desk.rotation_degrees.y = -90 
+		desk.rotation_degrees.y = -90
 		desk.scale = Vector3(1.2, 1.2, 1.2) # Masa un pic mai mare
 		_auto_generate_collision(desk)
+		PBRMaterialManager.apply_material_to_mesh(desk, "furniture")
 		
 		# Radioul pe birou (făcut și mai mic)
 		var radio = radio_scene.instantiate()
@@ -439,7 +536,7 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		_auto_generate_collision(radio)
 		
 		# Cheia pusă direct pe biroul cu radio!
-		var key_scene = preload("res://Scripts/Props/Key.glb")
+		var key_scene = load("res://Scripts/Props/Key.glb")
 		var key = key_scene.instantiate()
 		desk.add_child(key)
 		key.scale = Vector3(1.0, 1.0, 1.0) # Reset
@@ -475,11 +572,15 @@ func _decorate_manual(parent: Node3D, room_type: String):
 		
 	elif room_type == "RoomB":
 		# Covorul pe centru
-		var rug = rug_scene.instantiate()
-		parent.add_child(rug)
-		rug.position = Vector3(6.0, 0.01, 6.0) # 1cm deasupra podelei
-		rug.rotation_degrees.y = rng.randf_range(0, 360)
-		rug.scale = Vector3(2.5, 2.5, 2.5) # Facem covorul mult mai mare!
+		if rug_scene:
+			var rug = rug_scene.instantiate()
+			rug.name = "Rug_B"
+			parent.add_child(rug)
+			rug.position = Vector3(6.0, 0.01, 6.0) # 1cm deasupra podelei
+			rug.rotation_degrees.y = rng.randf_range(0, 360)
+			rug.scale = Vector3(2.5, 2.5, 2.5) # Facem covorul mult mai mare!
+			_auto_generate_collision(rug)
+			PBRMaterialManager.apply_material_to_mesh(rug, "rug")
 		
 		# 3 Cutii aruncate în colțul dreapta-sus
 		for i in range(3):
@@ -488,6 +589,7 @@ func _decorate_manual(parent: Node3D, room_type: String):
 			box.position = Vector3(10.0 + rng.randf_range(-1.0, 1.0), 0, 2.0 + rng.randf_range(-1.0, 1.0))
 			box.rotation_degrees.y = rng.randf_range(0, 360)
 			_auto_generate_collision(box)
+			PBRMaterialManager.apply_material_to_mesh(box, "box")
 
 func _auto_generate_collision(node: Node3D):
 	var has_collision = false

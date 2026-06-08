@@ -1,6 +1,7 @@
-extends Node3D
+extends StaticBody3D
 
 func _ready():
+	set_process_unhandled_input(true)
 	GameEvents.escape_door_opened.connect(_on_door_open)
 	GameEvents.safe_opened.connect(_on_safe_open)
 
@@ -12,6 +13,11 @@ func _on_door_open():
 		tween.tween_property(self, "position:y", 3.0, 2.0)
 		AudioManager.play_success()
 		print("🚪 Ușa blindată a glisat în sus! AI CÂȘTIGAT!")
+
+func _unhandled_input(event):
+	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
+		print("[Debug] Apăsat P - forțăm deschiderea ușilor glisante!")
+		_on_door_open()
 
 func _on_safe_open(room_id: String):
 	# Dacă acest obiect e un Safe și se află în camera corectă

@@ -1,0 +1,38 @@
+[gd_scene load_steps=7 format=3 uid="uid://exitlever123"]
+
+[ext_resource type="Script" path="res://Scripts/Environment/ExitLever.gd" id="1_lever"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_base"]
+size = Vector3(0.6, 0.8, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+metallic = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+material = SubResource("StandardMaterial3D_base")
+size = Vector3(0.6, 0.8, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_btn"]
+albedo_color = Color(0.9, 0.0, 0.0, 1)
+emission_enabled = true
+emission = Color(0.9, 0.0, 0.0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_btn"]
+material = SubResource("StandardMaterial3D_btn")
+top_radius = 0.15
+bottom_radius = 0.2
+height = 0.1
+
+[node name="ExitLever" type="StaticBody3D"]
+script = ExtResource("1_lever")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_base")
+
+[node name="BaseMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_base")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.1)
+mesh = SubResource("CylinderMesh_btn")

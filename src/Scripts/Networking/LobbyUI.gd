@@ -15,26 +15,19 @@ func _ready():
 	multiplayer.connection_failed.connect(_on_connection_failed)
 
 func _on_host_pressed():
-	var peer = ENetMultiplayerPeer.new()
-	var error = peer.create_server(PORT, MAX_PLAYERS)
-	if error != OK:
-		status_label.text = "Eroare la Host!"
-		return
-	multiplayer.multiplayer_peer = peer
-	status_label.text = "Hosting... Așteptând jucător 2"
+	NetworkManager.host()
+	status_label.text = "Hosting... Waiting for player 2"
 	host_button.disabled = true
 	join_button.disabled = true
 
 func _on_join_pressed():
 	var ip = ip_field.text.strip_edges()
 	if ip == "":
-		status_label.text = "Introdu un IP valid!"
+		status_label.text = "Enter a valid IP!"
 		return
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_client(ip, PORT)
-	multiplayer.multiplayer_peer = peer
-	status_label.text = "Se conectează la " + ip + "..."
-
+	NetworkManager.join(ip)
+	status_label.text = "Connecting to " + ip + "..."
+	
 func _on_player_connected(id):
 	status_label.text = "Jucător conectat! ID: " + str(id)
 

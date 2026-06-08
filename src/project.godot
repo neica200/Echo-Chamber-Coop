@@ -19,6 +19,10 @@ run/main_scene="uid://doskk84mnhng2"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+driver/enable_input=true
+
 [autoload]
 
 PuzzleGen="*res://Scripts/Agents/PuzzleGeneratorAgent.gd"
@@ -28,6 +32,12 @@ HintAgent="*res://Scripts/Agents/HintAgent.gd"
 PBRMaterialManager="*res://Scripts/Core/PBRMaterialManager.gd"
 SaboteurAgent="*res://Scripts/Agents/SaboteurAgent.gd"
 DifficultyAgent="*res://Scripts/Agents/DifficultyAgent.gd"
+NetworkManager="*uid://cel7td8sl660j"
+WalkieTalkie="*uid://cin8oc78ttb0q"
+
+[filesystem]
+
+import/blender/enabled=false
 
 [input]
 
@@ -39,5 +49,10 @@ interact={
 request_hint={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":72,"key_label":0,"unicode":104,"location":0,"echo":false,"script":null)
+]
+}
+walkie_talk={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":84,"key_label":0,"unicode":116,"location":0,"echo":false,"script":null)
 ]
 }

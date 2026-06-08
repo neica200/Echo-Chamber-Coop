@@ -116,7 +116,7 @@ O diagramă detaliată despre cum funcționează sistemul unic de "Focus Mode" (
 sequenceDiagram
     actor Jucator
     participant PlayerController
-    participant PuzzleObject (ex: Terminal)
+    participant PuzzleObject as "PuzzleObject (ex: Terminal)"
     participant GameEvents
     participant AudioManager
 

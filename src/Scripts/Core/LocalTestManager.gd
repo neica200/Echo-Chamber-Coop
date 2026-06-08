@@ -3,7 +3,7 @@ extends Node
 # Așează acest script pe un Nod gol în scena ta de testare!
 # Va spawna automat 2 jucători și te va lăsa să dai TAB între ei.
 
-var player_scene = preload("res://Scenes/player.tscn")
+var player_scene = preload("res://Scenes/Rooms/player.tscn")
 
 var player1: Node3D
 var player2: Node3D

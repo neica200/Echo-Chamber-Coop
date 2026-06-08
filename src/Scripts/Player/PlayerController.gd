@@ -7,7 +7,11 @@ const MOUSE_SENSITIVITY = 0.002
 # Get the gravity from the project settings.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
-@export var is_active: bool = true
+@export var is_active: bool = true:
+	set(value):
+		is_active = value
+		if ui_layer != null:
+			ui_layer.visible = is_active
 var is_focused: bool = false
 var original_camera_transform: Transform3D
 var original_camera_parent: Node3D
@@ -18,6 +22,7 @@ var original_camera_parent: Node3D
 # --- INVENTORY SYSTEM ---
 var inventory: Array[String] = []
 var inventory_label: Label
+var ui_layer: CanvasLayer
 
 # --- FOOTSTEP SYSTEM ---
 var walk_distance: float = 0.0
@@ -33,15 +38,18 @@ func _ready():
 		camera.make_current()
 		
 	# --- Setup Inventory UI ---
-	var canvas = CanvasLayer.new()
+	ui_layer = CanvasLayer.new()
+	ui_layer.name = "PlayerUILayer"
+	ui_layer.visible = is_active
+	
 	inventory_label = Label.new()
 	inventory_label.text = "Inventar: Gol"
 	inventory_label.position = Vector2(20, 20)
 	# Styling rapid pentru a se vedea textul
 	inventory_label.add_theme_font_size_override("font_size", 24)
 	inventory_label.add_theme_color_override("font_color", Color.YELLOW)
-	canvas.add_child(inventory_label)
-	add_child(canvas)
+	ui_layer.add_child(inventory_label)
+	add_child(ui_layer)
 		
 	# Ascunde și blochează mouse-ul în centrul ecranului la pornire
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -63,7 +71,7 @@ func _ready():
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE # CA SĂ NU BLOCHEZE MOUSE-UL!
 	
 	center.add_child(crosshair)
-	add_child(center)
+	ui_layer.add_child(center)
 
 func _unhandled_input(event):
 	if not is_active: return
@@ -254,7 +262,10 @@ func update_inventory_ui():
 	if inventory.is_empty():
 		inventory_label.text = "Inventar: Gol"
 	else:
-		inventory_label.text = "Inventar:\n- " + "\n- ".join(inventory)
+		var txt = "Inventar:"
+		for item in inventory:
+			txt += "\n- " + item
+		inventory_label.text = txt
 
 # --- SOUND SYSTEM ---
 func _play_footstep():

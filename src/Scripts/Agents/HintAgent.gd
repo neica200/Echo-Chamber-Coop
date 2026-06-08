@@ -2,22 +2,24 @@ extends Node
 
 # =============================================================
 # HINT AGENT - LLM Director AI
-# Pasul 4: Integrare Ollama API + Prompt JSON + Fallback local
-# Pasul 5: Actuatori fizici (lumini, sunet, shake, text cu sange)
+# Mod: On-Demand (tasta H) — jucătorul cere hint explicit
+# Actuatori fizici: lumini, shake, text cu sange
 # =============================================================
 
 # --- CONFIGURARE ---
-@export var stuck_time_limit: float = 10.0
+@export var hint_cooldown: float = 60.0   # Secunde intre doua hinturi consecutive
 @export var ollama_url: String = "http://127.0.0.1:11434/api/generate"
 @export var model_name: String = "llama3:8b"
 
 # --- STATE INTERN ---
 var is_drawer_opened: bool = false
 var active_blood_label: Label3D = null
-var stuck_timer: Timer
 var http_request: HTTPRequest
 var _is_waiting_for_ollama: bool = false
 var hints_given_this_stage: int = 0
+var _hint_cooldown_remaining: float = 0.0   # Countdown pana cand se poate cere alt hint
+var game_events = null
+var saboteur_agent = null
 
 # --- TELEMETRIE ---
 var wrong_attempts: Dictionary = {
@@ -88,28 +90,35 @@ const FALLBACK_HINTS = {
 }
 
 # =============================================================
-# READY
+# READY & PROCESS
 # =============================================================
 
 func _ready():
-	stuck_timer = Timer.new()
-	stuck_timer.name = "StuckTimer"
-	stuck_timer.one_shot = true
-	stuck_timer.wait_time = stuck_time_limit
-	add_child(stuck_timer)
-	stuck_timer.timeout.connect(_on_stuck_timeout)
-
 	# Nod HTTP pentru apelul catre Ollama
 	http_request = HTTPRequest.new()
 	http_request.name = "OllamaHTTP"
 	add_child(http_request)
 	http_request.request_completed.connect(_on_ollama_response)
 
-	GameEvents.stage_changed.connect(_on_stage_changed)
-	GameEvents.drawer_opened.connect(_on_drawer_opened)
-	stuck_timer.start()
+	if not game_events:
+		game_events = get_node_or_null("/root/GameEvents")
+	if not saboteur_agent:
+		saboteur_agent = get_node_or_null("/root/SaboteurAgent")
 
-	print("[HintAgent] ✅ Directorul AI initializat. Stuck limit: ", stuck_time_limit, "s | Model: ", model_name)
+	if game_events:
+		game_events.stage_changed.connect(_on_stage_changed)
+		game_events.drawer_opened.connect(_on_drawer_opened)
+
+	print("[HintAgent] ✅ Agentul Hint initializat (mod: On-Demand / tasta H) | Cooldown: %.0fs | Model: %s" % [hint_cooldown, model_name])
+
+func _process(delta: float):
+	# Scadem cooldown-ul in timp
+	if _hint_cooldown_remaining > 0.0:
+		_hint_cooldown_remaining = max(0.0, _hint_cooldown_remaining - delta)
+
+func _input(event: InputEvent):
+	if event.is_action_pressed("request_hint"):
+		_on_hint_requested()
 
 # =============================================================
 # HANDLERS SEMNALE
@@ -117,17 +126,17 @@ func _ready():
 
 func _on_stage_changed(_new_stage: int):
 	hints_given_this_stage = 0
+	_hint_cooldown_remaining = 0.0   # Resetam cooldown-ul la faza noua
 	_clear_active_blood_label()
-	_restart_stuck_timer()
 	_is_waiting_for_ollama = false
-	print("[HintAgent] 🔄 Etapa noua. Timer resetat.")
+	print("[HintAgent] 🔄 Etapa noua. Cooldown hint resetat.")
 
 func _on_drawer_opened():
 	hints_given_this_stage = 0
 	is_drawer_opened = true
+	_hint_cooldown_remaining = 0.0
 	_clear_active_blood_label()
-	_restart_stuck_timer()
-	print("[HintAgent] 🗝️ Sertar deschis. Timer resetat.")
+	print("[HintAgent] 🗝️ Sertar deschis. Cooldown hint resetat.")
 
 # =============================================================
 # TELEMETRIE (Pasul 2)
@@ -194,33 +203,73 @@ func register_wrong_attempt(puzzle_type: String):
 	if wrong_attempts.has(puzzle_type):
 		wrong_attempts[puzzle_type] += 1
 		print("[HintAgent] ❌ Greseala: ", puzzle_type, " (Total: ", wrong_attempts[puzzle_type], ")")
-		if stuck_timer and not stuck_timer.is_stopped():
-			var remaining = stuck_timer.time_left
-			var new_remaining = max(1.0, remaining * 0.5)
-			stuck_timer.stop()
-			stuck_timer.wait_time = new_remaining
-			stuck_timer.start()
-			print("[HintAgent] ⏱️ Timer: ", "%.1f" % remaining, "s -> ", "%.1f" % new_remaining, "s")
+		# La greseli repetate, reducem cooldown-ul curent cu 20%
+		if _hint_cooldown_remaining > 5.0:
+			_hint_cooldown_remaining = max(5.0, _hint_cooldown_remaining * 0.8)
+			print("[HintAgent] ⏱️ Cooldown redus la: ", "%.1f" % _hint_cooldown_remaining, "s")
 
 # =============================================================
-# PASUL 4: APEL OLLAMA + PROMPT
+# PASUL 4: APEL OLLAMA + PROMPT (On-Demand)
 # =============================================================
 
-func _on_stuck_timeout():
-	if _is_waiting_for_ollama:
-		print("[HintAgent] ⚠️ Inca astept raspunsul Ollama. Sar peste aceasta iteratie.")
-		stuck_timer.start()
+func _on_hint_requested():
+	# --- Verificam cooldown-ul ---
+	if _hint_cooldown_remaining > 0.0:
+		print("[HintAgent] ⏳ Hint in cooldown! Mai asteapta: %.0fs" % _hint_cooldown_remaining)
+		# Afisam un mesaj vizual de feedback ca playerul sa stie
+		_show_cooldown_feedback()
 		return
+
+	if _is_waiting_for_ollama:
+		print("[HintAgent] ⚠️ Inca astept raspunsul Ollama. Rabdare...")
+		return
+
+	# ======================================================================
+	# COORDONARE CU SABOTEURAGENT — evitam cereri concurente catre Ollama
+	# ======================================================================
+	if saboteur_agent and saboteur_agent._is_waiting_for_ollama:
+		print("[HintAgent] ⏳ SaboteurAgent foloseste Ollama. Astept 6 secunde...")
+		await get_tree().create_timer(6.0).timeout
+		if saboteur_agent and saboteur_agent._is_waiting_for_ollama:
+			print("[HintAgent] ⚡ Ollama inca ocupat de Saboteur. Activez fallback direct.")
+			_use_fallback()
+			return
 
 	var stage = _get_current_stage_key()
 	var tel = get_telemetry()
 
-	print("[HintAgent] ⏰ Jucatorii blocati la Faza ", stage, ". Construiesc prompt-ul...")
+	print("[HintAgent] 🆘 Hint cerut de jucator la Faza ", stage, ". Construiesc prompt-ul...")
 	print("  Player1: ", tel["player1_pos"], " dist=", "%.1f" % tel["player1_distance_to_target"], "m")
 	print("  Player2: ", tel["player2_pos"], " dist=", "%.1f" % tel["player2_distance_to_target"], "m")
 
+	# Setam cooldown-ul imediat ca sa nu se poata spama
+	_hint_cooldown_remaining = hint_cooldown
+
 	var prompt = _build_prompt(tel)
 	_call_ollama(prompt)
+
+func _show_cooldown_feedback():
+	# Afisam un mesaj subtil (alb/gri pe ecran) ca feedack vizual pentru cooldown
+	var overlay = CanvasLayer.new()
+	overlay.layer = 8
+	get_tree().root.add_child(overlay)
+
+	var label = Label.new()
+	label.text = "[ %.0fs ]" % _hint_cooldown_remaining
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	label.anchor_top = 0.92
+	label.anchor_bottom = 1.0
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.0))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(label)
+
+	var tween = create_tween()
+	tween.tween_property(label, "theme_override_colors/font_color", Color(0.7, 0.7, 0.7, 1.0), 0.3)
+	tween.tween_interval(1.2)
+	tween.tween_property(label, "theme_override_colors/font_color", Color(0.7, 0.7, 0.7, 0.0), 0.5)
+	tween.tween_callback(func(): if is_instance_valid(overlay): overlay.queue_free())
 
 func _build_prompt(tel: Dictionary) -> String:
 	var history_str = "No previous hints."
@@ -309,9 +358,6 @@ func _call_ollama(prompt: String):
 func _on_ollama_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
 	_is_waiting_for_ollama = false
 
-	# Reporneste timer-ul indiferent de rezultat
-	_restart_stuck_timer()
-
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		print("[HintAgent] ⚠️ Ollama a raspuns cu eroare (HTTP ", response_code, "). Fallback.")
 		_use_fallback()
@@ -352,9 +398,6 @@ func _use_fallback():
 	})
 	print("[HintAgent] 🔁 Fallback activ: ", fallback["hint_text"])
 	_execute_hint(fallback["action"], fallback["hint_text"])
-
-	# Reporneste timer-ul
-	_restart_stuck_timer()
 
 # =============================================================
 # PASUL 5: ACTUATORI FIZICI
@@ -526,18 +569,15 @@ func _spawn_blood_text(text: String, wall_pos: Vector3):
 # HELPERS
 # =============================================================
 
+# Pastrat ca stub public — apelat de alte sisteme care semnaleaza progres
 func _restart_stuck_timer():
-	if stuck_timer:
-		stuck_timer.stop()
-		var current_limit = max(60.0, stuck_time_limit - (hints_given_this_stage * 120.0))
-		stuck_timer.wait_time = current_limit
-		stuck_timer.start()
-		print("[HintAgent] ⏱️ Timer resetat la ", "%.1f" % current_limit, "s")
+	pass  # Timer-ul automat nu mai exista in modul On-Demand
 
 func _get_current_stage_key() -> float:
-	if GameEvents.current_stage == 2 and not is_drawer_opened:
+	var current_stage = game_events.current_stage if game_events else 1
+	if current_stage == 2 and not is_drawer_opened:
 		return 1.5
-	return float(GameEvents.current_stage)
+	return float(current_stage)
 
 func _clear_active_blood_label():
 	if active_blood_label and is_instance_valid(active_blood_label):

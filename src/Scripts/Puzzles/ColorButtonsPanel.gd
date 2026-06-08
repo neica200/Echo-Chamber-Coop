@@ -48,6 +48,8 @@ func button_pressed(color: String):
 		print("❌ [ERROR] Culoare greșită! Secvența s-a resetat.")
 		if has_node("/root/HintAgent"):
 			get_node("/root/HintAgent").register_wrong_attempt("color_sequence")
+		if has_node("/root/SaboteurAgent"):
+			get_node("/root/SaboteurAgent").register_wrong_attempt("color_sequence", "Player1")
 		current_input.clear()
 	elif current_input.size() == target_sequence.size():
 		AudioManager.play_success()

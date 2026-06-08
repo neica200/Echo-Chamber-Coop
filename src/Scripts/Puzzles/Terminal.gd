@@ -161,6 +161,8 @@ func _on_btn_pressed(btn_id: String):
 			AudioManager.play_error()
 			if has_node("/root/HintAgent"):
 				get_node("/root/HintAgent").register_wrong_attempt("terminal_hack")
+			if has_node("/root/SaboteurAgent"):
+				get_node("/root/SaboteurAgent").register_wrong_attempt("terminal_hack", "Player1")
 			current_sequence.clear()
 			return
 			

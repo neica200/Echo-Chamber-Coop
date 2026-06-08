@@ -11,22 +11,24 @@
 *   **Game State & Events (`src/Scripts/Core/GameEvents.gd`):** A global Autoload Singleton that acts as the game's State Machine. It manages the current game stage (`current_stage`) and acts as a central event bus for global game signals.
 *   **Audio Manager (`src/Scripts/Core/AudioManager.gd`):** An Autoload Singleton managing background music (ambient track looping) and spatial sound effects (UI clicks, successful actions, and error tones).
 *   **Local Test Manager (`src/Scripts/Core/LocalTestManager.gd`):** Manages local execution, player switching (TAB key), and player spawns for test levels.
+*   **PBR Material Manager (`src/Scripts/Core/PBRMaterialManager.gd`):** A manager providing dynamically generated PBR materials (concrete, wood, metal, plastic, glass) and applying them to mesh instances at runtime to ensure consistent material rendering.
 
 ### Player Controller & Interaction System
 *   **Player Controller (`src/Scripts/Player/PlayerController.gd`):** 
     *   Standard first-person movement (enhanced with keyboard WASD input detection at the physical key code level: `KEY_W`, `KEY_A`, `KEY_S`, `KEY_D`, alongside traditional arrow keys).
     *   **Focus Mode ("Rusty Lake Style"):** Clicking on interactive objects (keypads, terminals) transitions the camera to Zoom-In mode, locks player movement, unlocks the mouse cursor, and routes mouse clicks directly onto 3D/2D Viewport objects. Pressing `ESC` or clicking Right Mouse Button exits focus mode.
     *   **Safeguard Switcher:** Safely handles player swapping (via `TAB` key), automatically exiting Zoom Focus Mode first to prevent camera detachments and game engine crashes.
+    *   **Multiplayer Authority Check:** Integrates with `MultiplayerSynchronizer` to disable processing, camera, and player input on remote clients where the local peer is not the authority.
 
 ### Agent Logic
-1.  **Room Generator Agent (`src/Scripts/Agents/RoomGeneratorAgent.gd`):** Procedurally constructs the physical grids of Room A and Room B. Uses a deterministic seed to spawn modular assets, furniture slots, and walls. Leverages a relative "Socket System" to prevent object clipping when mounting props to desks or walls.
+1.  **Room Generator Agent (`src/Scripts/Agents/RoomGeneratorAgent.gd`):** Procedurally constructs the physical grids of Room A and Room B. Uses a deterministic seed to spawn modular assets, furniture slots, and walls. Leverages a relative "Socket System" to prevent object clipping when mounting props to desks or walls. Correctly sequences hierarchy initialization to avoid ready timing crashes.
 2.  **Puzzle Generator Agent (`src/Scripts/Agents/PuzzleGeneratorAgent.gd`):** The logic graph builder. Given a seed, it determines which room has the clue/solution and which room has the lock/mechanism, and generates puzzle solutions dynamically:
     *   `numpad_puzzle`: Numeric 4-digit code.
     *   `color_sequence`: Shuffled color pattern.
     *   `grid_puzzle`: 3x3 active grid state configuration.
     *   `math_puzzle`: Procedural item count (books + chairs) logic.
-3.  **Hint Agent:** (Pending full implementation) Will track player telemetry to feed context-sensitive hints if stuck.
-4.  **Saboteur Agent:** (Pending full implementation) Intended to trigger horror atmospheric elements (flickering lights, fake clues).
+3.  **Hint Agent (`src/Scripts/Agents/HintAgent.gd`):** Fully implemented context-aware feedback system. Tracks player positions, stage changes, and wrong attempt counts to generate hints via local Ollama LLM queries (optimized for speed and low temperature) or fallback static suggestions. Triggers environmental events such as light flickering, shaking furniture, and spawning 3D blood text decals.
+4.  **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** An LLM-based atmospheric horror director. Monitors player idle time and tension (0.0→1.0) and queries Ollama (`llama3:8b`) to dynamically select scare events. Coordinates with `HintAgent` to prevent concurrent Ollama requests. Exposes `register_wrong_attempt(puzzle_type, player_name)` — called by all puzzle scripts (`FuseBox3x3.gd`, `ColorButtonsPanel.gd`, `Terminal.gd`, `Numpad.gd`) on each mistake to immediately spike tension and panic, and optionally reduce the scare cooldown to 10s. Actuators: `DOOR_SLAM` (3D positional audio thud + camera shake), `FOOTSTEPS` (panning spatial audio), `VENTILATION_SHUTDOWN` (background music fade), `LIGHT_BLACKOUT` (via `GameEvents.room_lights_toggled`), `PLAYER_ISOLATION` (disables movement + glitch overlay for 6s), `ASYMMETRIC_WHISPER` (creepy text shown to one player only), `SPAWN_FAKE_CLUE` (instantiates `Note.tscn` with wrong puzzle instructions, auto-destroys after 25s).
 
 ### Puzzle & Interactive Entities (`src/Scripts/Puzzles/`)
 *   **`FuseBox3x3.gd` & `FuseButton.gd`:** Grid-based fuse box in Room B. Solving it turns on the lights in both rooms.
@@ -39,6 +41,31 @@
 ### SaaS Backend
 *   **SaaS Server (`backend/server.js`):** Express app running on port 3000.
 *   **Authentication API (`backend/auth/auth.js`):** Basic user registration and login utilizing bcrypt password hashing and JSON Web Tokens (JWT).
+
+### Networking & Multiplayer Sync
+*   **Network Manager (`src/Scripts/Networking/NetworkManager.gd`):** An Autoload Singleton managing Godot ENet-based multiplayer sessions (hosting and joining on port 7777). Handles peer connections/disconnections and dynamically instantiates player scenes, assigning authority.
+
+### Automated Testing & CI/CD
+*   **Hint Agent Evaluation ([eval_hint_agent.gd](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/tests/eval_hint_agent.gd)):** A headless test runner verifying the HintAgent's prompt generation format, static fallback dictionaries, and wrong-attempt state tracking logic.
+*   **Saboteur Agent Evaluation ([eval_saboteur_agent.gd](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/tests/eval_saboteur_agent.gd)):** A headless test runner verifying the SaboteurAgent's prompt telemetry, JSON schema parsing, static action fallbacks per stage, and fallback fake clues.
+*   **CI/CD Workflow ([ci.yml](file:///c:/Users/alexi/Desktop/Echo-Chamber-Coop/.github/workflows/ci.yml)):** Automatically runs Express backend dependency checks/tests, runs `gdlint` on GDScript files, and executes the Godot test suite (`eval_hint_agent.gd` and `eval_saboteur_agent.gd`) in headless mode.
+*   **Running Tests Locally:**
+    *   From the repository root:
+        ```bash
+        godot --headless --path src -s tests/eval_hint_agent.gd
+        godot --headless --path src -s tests/eval_saboteur_agent.gd
+        ```
+    *   From the `src/` directory:
+        ```bash
+        cd src
+        godot --headless -s ../tests/eval_hint_agent.gd
+        godot --headless -s ../tests/eval_saboteur_agent.gd
+        ```
+    *(If the `godot` command is not in your system's PATH, substitute it with the absolute path to your Godot executable, e.g. `& "C:\Path\To\Godot_v4.x.exe"` in PowerShell).*
+
+### Accompanying Documentation
+*   **Architecture & Workflow Diagrams (`diagrame_arhitectura.md`):** Mermaid documentation detailing UML classes, stage workflow, and raycast Focus Mode sequences.
+*   **AI Usage Report (`raport_ai.md`):** Team usage details of AI pair-programming, showing how agentic assistants helped resolve math translations, CI/CD setup, and state machine flows.
 
 ---
 
@@ -73,6 +100,11 @@ graph TD
     *   **Puzzle UI & Mechanisms:** Grid buttons, interactive computer terminals, keypad UI, color board, and drawer lock interactions.
     *   **Authentication API:** Backend registration and login endpoints.
     *   **Dynamic Hint System (`src/Scripts/Agents/HintAgent.gd`):** A context-aware system that tracks player positions, failed attempts, and puzzle states. Uses local Ollama LLM queries (optimized for low temperatures and token lengths) with deterministic static fallbacks. Triggers environment changes (flickering lights via `CeilingLightLogic.gd`, shaking furniture, and spawning wide, auto-fading 3D blood text hints).
+    *   **Networking & Lobby Core:** Autoload singleton `NetworkManager.gd` for creating hosts/clients and spawning networked players.
+    *   **Multiplayer Player Controller:** Integrated MultiplayerSynchronizer checks to restrict movement and camera control to local authorities.
+    *   **PBR Materials Override:** `PBRMaterialManager.gd` ensuring correct visual properties for all procedural elements.
+    *   **Headless Test Suite:** `eval_hint_agent.gd` and GitHub Actions `.github/workflows/ci.yml` verifying linting and agent logic.
+    *   **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** LLM-based Paranoia System that monitors player stagnation, tension, and panic levels. Triggers dynamic horror events (door slams, footsteps, blackouts, asymmetric whispers, fake clue notes, player isolation) via Ollama, with static fallbacks. Coordinates Ollama access with `HintAgent` to prevent concurrent API calls.
 *   **🟡 In Progress:**
     *   **Networking & Sync:** Connecting local puzzle state changes (e.g. lights on, drawer open, safe open) across clients using Godot P2P multiplayer.
 *   **🔴 Planned / Missing:**

@@ -50,4 +50,6 @@ func button_pressed(digit: String):
 			print("❌ [ERROR] Parolă greșită! S-a resetat.")
 			if has_node("/root/HintAgent"):
 				get_node("/root/HintAgent").register_wrong_attempt("numpad_puzzle")
+			if has_node("/root/SaboteurAgent"):
+				get_node("/root/SaboteurAgent").register_wrong_attempt("numpad_puzzle", "Player2")
 			current_input = "" # Ștergem inputul ca să poată încerca iar

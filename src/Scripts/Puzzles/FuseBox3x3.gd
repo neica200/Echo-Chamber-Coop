@@ -70,4 +70,6 @@ func check_solution():
 		if moves_made % 8 == 0:
 			if has_node("/root/HintAgent"):
 				get_node("/root/HintAgent").register_wrong_attempt("fuse_puzzle")
+			if has_node("/root/SaboteurAgent"):
+				get_node("/root/SaboteurAgent").register_wrong_attempt("fuse_puzzle", "Player2")
 

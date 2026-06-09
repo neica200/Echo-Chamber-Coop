@@ -23,7 +23,7 @@ func _on_host_pressed():
 			local_ip = ip
 			break
 			
-	status_label.text = "Hosting pe IP: " + local_ip + "\nSpune-i colegului să bage acest IP!"
+	status_label.text = "Host pornit!\nLocal: " + local_ip + "\n(Dacă jucați pe internet, dă-i IP-ul public din Playit.gg!)"
 	host_button.disabled = true
 	join_button.disabled = true
 

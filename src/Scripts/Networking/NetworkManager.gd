@@ -37,7 +37,7 @@ func _on_all_players_ready() -> void:
 
 @rpc("authority", "call_local")
 func change_scene() -> void:
-	get_tree().change_scene_to_file("res://Scenes/testLevel.tscn")
+	get_tree().change_scene_to_file("res://Scenes/Rooms/TestRoomGeneration.tscn")
 
 func host():
 	var peer = ENetMultiplayerPeer.new()

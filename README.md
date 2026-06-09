@@ -1,58 +1,66 @@
 # 🎭 Echo Chamber - Co-op AI Escape Room
 
-## 🚀 Proiect Overview
-**Echo Chamber** este o experiență horror cooperativă de tip escape room, dezvoltată ca un serviciu (SaaS). Jocul utilizează un sistem complex de **4 Agenți AI** pentru a genera o experiență unică la fiecare sesiune, forțând jucătorii să colaboreze prin comunicare asimetrică și coordonare în timp real.
+## 🚀 Project Overview
+**Echo Chamber** is a cooperative, horror-themed escape room experience developed as a Software-as-a-Service (SaaS). The game leverages a complex system of **Intelligent Agents** to generate a unique experience for every session, forcing players to collaborate through asymmetric communication and real-time coordination.
 
-### 💡 Elementul de Inovare (AI Agents)
-1. **Room Generator Agent:** Creează layout-ul camerei procedural.
-2. **Asymmetric Puzzle Agent:** Împarte indiciile între jucători (Player A vede soluția, Player B are mecanismul).
-3. **Saboteur Agent:** Monitorizează echipa și intervine pentru a crește tensiunea (izolare, sabotaj lumini).
-4. **Hint Agent:** Oferă asistență contextuală bazată pe telemetria jucătorilor.
+## 🧩 Game Components & Puzzles
+The project is built using the **Godot 4 Engine** for the client and a **Node.js/Express** backend for SaaS functionalities.
+
+- **Asymmetric Puzzles (`PuzzleGen.gd`):** Procedurally generates distinct escape room mechanics based on a shared network seed. Puzzles include:
+  - *Color Panels*: Memorizing and syncing color sequences.
+  - *Mathematical Grids*: Coordinated button pressing based on shared boolean grid states.
+  - *Interactive Numpad / Safes*: Cracking access codes using clues from the other player's room.
+- **Environment & Textures:** Uses high-quality **PBR Materials** (Albedo, Normal, Roughness, AO, Height mapped via `PBRMaterialManager.gd`) to render a realistic, terrifying atmosphere. This includes processing high-resolution textures (e.g., Velvet, Stone Tiles, Substance Graphs) dynamically.
+- **Peer-to-Peer Networking:** Synchronizes player movements, item transfers, 3D ping systems, and puzzle states in real-time.
+- **Proximity Voice Chat (`WalkieTalkie.gd`):** Spatially positioned 3D VoIP for immersive, horror-inducing communication.
+- **SaaS Backend:** A Node.js Express API handling player registration, JWT authentication, and a Team Dashboard to track performance and escape times.
+
+## 🤖 AI Agents & LLM Integration
+Powered by a local **Ollama (`llama3:8b`)** LLM instance and deterministic scripts.
+
+### LLM-Powered Agents (Async HTTP)
+1. **Hint Agent (`HintAgent.gd`):** Monitors player telemetry (stage, location, mistakes) to generate contextual, diegetic hints without directly spoiling solutions.
+2. **Saboteur Agent (`SaboteurAgent.gd`):** The horror director. Tracks inactivity/tension to trigger dynamic scares (flickering lights, slamming doors, cryptic bloody texts).
+3. **Difficulty Agent (`DifficultyAgent.gd`):** Dynamically scales puzzle difficulty. `SCALE_UP` (e.g., 6-digit PIN) for fast players, or `SCALE_DOWN` (e.g., 3-digit PIN) for struggling ones.
+4. **Painting AI (`PaintingAI.gd`):** Generates disturbing image clues using text-to-image APIs (Pollinations.ai / DALL-E) based on puzzle context.
+
+### Procedural Agents
+- **Room Generator Agent (`RoomGeneratorAgent.gd`):** Deterministically creates the room layout and distributes clues based on the network seed.
+- **Puzzle Generator Agent (`PuzzleGeneratorAgent.gd`):** Calculates all asymmetric puzzle logic and solutions dynamically.
+
+## ⚙️ Automated Testing & CI/CD
+To ensure code reliability, the project includes a robust DevOps pipeline:
+- **Headless Unit Tests:** Dedicated test scripts (e.g., `eval_hint_agent.gd`, `eval_game_stats.gd`, `eval_saboteur_agent.gd`) run locally without a GUI, mocking LLM calls and evaluating logic, state tracking, and rank calculation.
+- **GitHub Actions (`ci.yml`):** Automatically triggers the headless Godot unit tests on every commit, alongside code checks, ensuring the `main` branch is always stable.
+
+---
+
+## 👥 Team
+- Neica Mario - 234
+- Șeitan Alexia - 234 
+- Sali Melysa - 24
+- Popa Andreea - 24
 
 ---
 
-## 👥 Echipa
--Neica Mario - 234
--Șeitan Alexia - 234 
--Sali Melysa - 24
--Popa Andreea -24
-
-
----
-
-## 📋 Product Backlog (Fixed: March 22, 2026)
-
-| US ID | Epic | User Story (EN) | Role | SP | Priority | MoSCoW | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **US1** | Exploration | Explore the room to discover hidden clues. | Player | 3 | High | Must | 🔴 To Do |
-| **US2** | Networking | Join a lobby via unique code for co-op play. | Player | 5 | High | Must | 🔴 To Do |
-| **US3** | Mechanics | Asymmetric clues: one sees it, one uses it. | Player | 8 | High | Must | 🔴 To Do |
-| **US4** | Mechanics | Coordinated actions (sync levers/buttons). | Player | 5 | Medium | Should | 🔴 To Do |
-| **US5** | Mechanics | Item transfer system between players. | Player | 3 | Medium | Should | 🔴 To Do |
-| **US6** | UI/UX | 3D Ping system to highlight objects for partner. | Player | 2 | Low | Could | 🔴 To Do |
-| **US7** | AI Agents | Procedural room layouts based on network seed. | Player | 8 | High | Must | 🔴 To Do |
-| **US8** | AI Agents | Saboteur event: temporary player isolation. | Player | 5 | Medium | Should | 🔴 To Do |
-| **US9** | AI Agents | Hint Agent: Adaptive help when stuck. | Player | 5 | Low | Could | 🔴 To Do |
-| **US10** | SaaS/Cloud | Cloud Auth: Save progress and escape times. | User | 5 | High | Must | 🔴 To Do |
-| **US11** | SaaS/Cloud | Team Dashboard: Performance & analytics. | User | 3 | Medium | Could | 🔴 To Do |
-| **US12** | Audio | Proximity-based 3D Voice Chat. | Player | 5 | Medium | Should | 🔴 To Do |
-| **US13** | Mechanics | Shared Failure State: Global Game Over. | Team | 3 | High | Must | 🔴 To Do |
-
----
 
 ## 📂 Project Structure
 
 ```text
 Echo-Chamber-SaaS/
-├── src/                # Game Source Code (Unity/Unreal)
+├── src/                # Game Source Code (Godot 4)
 │   ├── Scripts/
-│   │   ├── AI/         # RoomGen, Saboteur, Hint Logic
-│   │   ├── Networking/ # Sincronizare & Lobby System
-│   │   ├── Player/     # Interaction & Inventory
-│   │   └── UI/         # Dashboards & HUD
-│   └── Assets/         # 3D Models, Prefabs, Audio
+│   │   ├── Agents/     # Saboteur, Hint, Difficulty, RoomGen, PuzzleGen
+│   │   ├── Core/       # GameStats, GameEvents, AudioManager
+│   │   ├── Environment/# Room layout & geometry logic
+│   │   ├── Networking/ # WalkieTalkie, P2P Sincronization
+│   │   ├── Player/     # Player controllers & Interaction
+│   │   ├── Props/      # Interactable objects (doors, safes)
+│   │   ├── Puzzles/    # Mechanics (Numpad, Color Panels)
+│   │   ├── Textures/   # PBR materials & textures
+│   │   └── UI/         # AuthUI, EndGameScreen
+│   └── Assets/         # 3D Models, Sounds, Prefabs
 ├── backend/            # SaaS Infrastructure (Node.js)
-│   ├── auth/           # Firebase/Auth0 Integration
-│   └── api/            # Telemetry & Leaderboard API
-├── docs/               # Technical Documentation & Diagrams
+├── tests/              # Headless Automated Tests (GDScript)
 └── .github/            # CI/CD Workflows
+```

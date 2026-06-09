@@ -34,8 +34,7 @@ Printre instrumentele utilizate se numără asistenți AI avansați, cu capabili
 - *Crearea design-ului interfețelor (UI/UX) cu asistenți de design.*
 - *Testare și validare de cod.*
 
-### [Nume Membru 4] (Dacă este cazul - Completare necesară)
-*Descrie aici cum ai folosit tool-urile de AI.*
+
 
 ---
 

@@ -40,6 +40,14 @@ classDiagram
         +signal peer_connected(id)
     }
 
+    class GameStats {
+        <<Singleton>>
+        +float total_time
+        +int numpad_mistakes
+        +get_stats() Dictionary
+        +get_rank() String
+    }
+
     class RoomGeneratorAgent {
         +generate_rooms(seed)
         +place_on_wall()
@@ -101,6 +109,8 @@ classDiagram
     DifficultyAgent --> HintAgent : Citește wrong_attempts pentru evaluare
     DifficultyAgent --> PuzzleGen : Modifică active_puzzles (soluție mărită/micșorată)
     PlayerController --> NetworkManager : Inițiază conexiune multiplayer
+    GameStats --> GameEvents : Ascultă puzzle_solved / escape_door_opened
+    EndGameScreen --> GameStats : Citește datele pentru Rank S-D
 ```
 
 ## 2. Diagrama de Flux a Jocului (Workflow / State Diagram)
@@ -127,7 +137,7 @@ stateDiagram-v2
         Panou_Culori_Aprins : Se aprinde Hint-ul de culori (Room A)
     }
     
-    Faza15_Sertar --> Faza2_Seif : [DifficultyAgent evalueaza Faza 1 & ajusteaza secventa de culori] -> P2 introduce culorile
+    Faza15_Sertar --> Faza2_Seif : [DifficultyAgent evalueaza Faza 1 & ajusteaza secventa de culori] -> P1 (Room A) introduce culorile
     
     state Faza2_Seif {
         Seif_Deschis : Se deschide Seiful (Room B)
@@ -145,9 +155,10 @@ stateDiagram-v2
     
     state Faza4_Evadare {
         Usa_Deschisa : Escape Door Opened
+        EndGame_Screen : Afișare Analytics & Rank (S-D)
     }
     
-    Faza4_Evadare --> [*] : Game Won!
+    Faza4_Evadare --> [*] : Jucătorii primesc Rank-ul final
 ```
 
 ## 3. Workflow de Interacțiune (Sequence Diagram)

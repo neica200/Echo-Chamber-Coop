@@ -12,6 +12,7 @@
 *   **Audio Manager (`src/Scripts/Core/AudioManager.gd`):** An Autoload Singleton managing background music (ambient track looping) and spatial sound effects (UI clicks, successful actions, and error tones).
 *   **Local Test Manager (`src/Scripts/Core/LocalTestManager.gd`):** Manages local execution, player switching (TAB key), and player spawns for test levels.
 *   **PBR Material Manager (`src/Scripts/Core/PBRMaterialManager.gd`):** A manager providing dynamically generated PBR materials (concrete, wood, metal, plastic, glass) and applying them to mesh instances at runtime to ensure consistent material rendering.
+*   **Game Stats Tracker (`src/Scripts/Core/GameStats.gd`):** Singleton that tracks escape time, puzzles solved, mistakes, and calculates the final score/rank.
 
 ### Player Controller & Interaction System
 *   **Player Controller (`src/Scripts/Player/PlayerController.gd`):** 
@@ -110,10 +111,12 @@ graph TD
     *   **Headless Test Suite:** `eval_hint_agent.gd`, `eval_saboteur_agent.gd`, `eval_difficulty_agent.gd` and GitHub Actions `.github/workflows/ci.yml`.
     *   **Saboteur Agent (`src/Scripts/Agents/SaboteurAgent.gd`):** LLM-based atmospheric director that monitors player idle time and tension. Triggers dynamic scare events (blackouts, door slams, isolation, whispers, fake clues) using Ollama.
     *   **Dynamic Difficulty Scaling (`src/Scripts/Agents/DifficultyAgent.gd`):** LLM-based director adjusting puzzle sizes (color sequence length, PIN code length) at runtime based on performance.
+    *   **EndGame Analytics Screen (`src/Scripts/UI/EndGameScreen.gd`):** Shows S-D rank, total escape time, mistakes count, and calculate a score out of 100 after escaping.
+    *   **Networked AI Painting (`src/Scripts/Networking/PaintingAI.gd`):** Synchronizes generated AI hints and clues (Pollinations.ai/DALL-E) seamlessly between host and client via RPC calls.
+    *   **Walkie-Talkie Voice Chat (`src/Scripts/Networking/WalkieTalkie.gd`):** VoIP implemented via RPC sending audio chunks through a Radio bus with custom effects.
+    *   **Atmospheric Polish (`src/Scripts/Agents/SaboteurAgent.gd`):** Audio-visual horror style glitches, text overlays, and isolation mechanics fully integrated.
 *   **🟡 In Progress:**
-    *   **Networking & Sync:** Connecting local puzzle state changes (e.g. lights on, drawer open, safe open) across clients using Godot P2P multiplayer.
+    *   **Networking & Sync:** Connecting more local puzzle state changes (e.g. lights on, drawer open, safe open) across clients using Godot P2P multiplayer.
 *   **🔴 Planned / Missing:**
     *   **Time-Attack "Bomb" Event:** A mid-game emergency event triggering red alarm sirens and requiring both players to coordinate and cut specific panel wires simultaneously within a 3-minute window.
     *   **Leaderboard & SaaS Dashboard:** Connecting the backend Express API to Godot to log escape times.
-    *   **Proximity Voice Chat:** 3D positional audio.
-    *   **Atmospheric Polish:** Audio-visual horror style glitches.

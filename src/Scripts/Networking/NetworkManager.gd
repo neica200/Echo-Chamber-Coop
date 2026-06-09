@@ -13,6 +13,8 @@ func _ready():
 func _on_peer_connected(id: int):
 	print("Player connected: ", id)
 	spawn_player(id)
+	if players.size() >= MAX_PLAYERS:
+		_on_all_players_ready()
 
 func _on_peer_disconnected(id: int):
 	print("Player disconnected: ", id)
@@ -28,6 +30,15 @@ func spawn_player(id: int):
 	players[id] = player
 	print("Spawned player: ", id)
 
+func _on_all_players_ready() -> void:
+	if multiplayer.is_server():
+		print("[NetworkManager] Toți jucătorii conectați! Schimb scena...")
+		change_scene.rpc()
+
+@rpc("authority", "call_local")
+func change_scene() -> void:
+	get_tree().change_scene_to_file("res://Scenes/testLevel.tscn")
+
 func host():
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_server(PORT, MAX_PLAYERS)
@@ -38,3 +49,6 @@ func join(ip: String):
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_client(ip, PORT)
 	multiplayer.multiplayer_peer = peer
+	# Clientul își spawn-uiește playerul când se conectează
+	await multiplayer.connected_to_server
+	spawn_player(multiplayer.get_unique_id())

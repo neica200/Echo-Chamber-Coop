@@ -20,12 +20,12 @@ Printre instrumentele utilizate se numără asistenți AI avansați, cu capabili
 - **Automatizare și DevOps:** Am delegat AI-ului redactarea și repararea pipeline-ului CI/CD prin GitHub Actions (`ci.yml`), inclusiv înlocuirea unor acțiuni GitHub third-party învechite cu scripturi oficiale prin Python (`gdtoolkit`), asigurând astfel un pipeline robust.
 - **Generare de Documentație:** Diagramele arhitecturale și de workflow complexe (secvențele Raycast) au fost generate și formatate folosind standardul `Mermaid` prin prompting direct din descrierea codului.
 
-### [Nume Membru 2] (Completare necesară)
-*Descrie aici cum ai folosit tool-urile de AI. Exemple:*
-- *Generare sau ajustare de asset-uri 2D/3D folosind AI (Midjourney, DALL-E, etc.).*
-- *Generarea puzzle-urilor sau crearea de backend logic.*
-- *Brainstorming pentru designul camerei sau flow-ul jocului.*
-- *Scrierea scripturilor de Backend (Node.js/Python).*
+### Andreea (Level Design, Generare Procedurală și Depanare UI/UX)
+În cadrul dezvoltării, am utilizat asistentul AI agentic ca partener direct de codare (pair-programming) pentru a accelera implementarea mecanicilor complexe din Godot și pentru a finisa aspectul nivelurilor:
+- **Level Design și Integrare Puzzle-uri:** Am folosit AI-ul pentru a modifica arhitectura procedurală a nivelurilor (`RoomGeneratorAgent.gd`), ajustând proporțiile camerelor (ex. îngustarea coridorului de trecere) și plasând exact elementele pentru puzzle-ul final (poziționarea manetelor sincronizate pentru `ExitDoor`).
+- **Generare Procedurală (Wave Function Collapse):** Am dezvoltat, cu ajutorul asistentului, un algoritm *Wave Function Collapse* scris complet în GDScript de la zero (`WFCTextureGenerator.gd`). Acesta calculează entropia minimă și propagă stări pentru a genera o textură unică (tip "Dungeon Stone") la fiecare rulare a jocului, care este apoi aplicată dinamic pe tavan.
+- **Depanare UI/UX (Overlap în Split-Screen):** AI-ul m-a ajutat să depistez un bug vizual subtil în care inventarele jucătorilor se suprapuneau din cauza creării multiple de noduri `CanvasLayer` în modul de testare locală. Am rezolvat problema adăugând un sistem de toggle vizual bazat pe parametrul `is_active`.
+- **Refactoring:** Eliminarea prop-urilor statice (notițele scrise de mână) pentru a forța jucătorii să interacționeze direct cu mecanicile complexe (Terminalul PC și Seiful).
 
 ### [Nume Membru 3] (Completare necesară)
 *Descrie aici cum ai folosit tool-urile de AI. Exemple:*

@@ -35,10 +35,13 @@ func _generate_materials():
 	# Wood Floor (Același cu podeaua normală acum, pentru a evita ambiguitatea)
 	wood_floor_material = floor_material
 	
-	# Ceiling Material (Metal Roofing)
+	# Ceiling Material (WFC Dungeon Stone procedural generation)
 	ceiling_material = StandardMaterial3D.new()
-	ceiling_material.albedo_color = Color(0.8, 0.8, 0.8)
-	ceiling_material.roughness = 0.95
+	var wfc_tex = preload("res://Scripts/Procedural/WFCTextureGenerator.gd").generate_dungeon_stone_texture(32, 32)
+	ceiling_material.albedo_texture = wfc_tex
+	ceiling_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST # Păstrăm aspectul 'chunky' de dale de piatră
+	ceiling_material.uv1_scale = Vector3(8, 8, 8) # Repetăm de mai multe ori pe tavan
+	ceiling_material.roughness = 1.0
 
 	# Wall Material
 	wall_material = StandardMaterial3D.new()

@@ -32,9 +32,9 @@ HintAgent="*res://Scripts/Agents/HintAgent.gd"
 PBRMaterialManager="*res://Scripts/Core/PBRMaterialManager.gd"
 SaboteurAgent="*res://Scripts/Agents/SaboteurAgent.gd"
 DifficultyAgent="*res://Scripts/Agents/DifficultyAgent.gd"
-NetworkManager="*uid://cel7td8sl660j"
-WalkieTalkie="*uid://cin8oc78ttb0q"
-GameStats="*uid://cojglk7t6ixsp"
+NetworkManager="*res://Scripts/Networking/NetworkManager.gd"
+WalkieTalkie="*res://Scripts/Networking/WalkieTalkie.gd"
+GameStats="*res://Scripts/Core/GameStats.gd"
 
 [filesystem]
 

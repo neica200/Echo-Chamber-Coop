@@ -45,17 +45,9 @@ func host():
 	multiplayer.multiplayer_peer = peer
 	spawn_player(multiplayer.get_unique_id())
 
-func join(ip_string: String):
+func join(ip: String):
 	var peer = ENetMultiplayerPeer.new()
-	var join_ip = ip_string
-	var join_port = PORT
-	
-	if ip_string.find(":") != -1:
-		var parts = ip_string.split(":")
-		join_ip = parts[0]
-		join_port = parts[1].to_int()
-		
-	peer.create_client(join_ip, join_port)
+	peer.create_client(ip, PORT)
 	multiplayer.multiplayer_peer = peer
 	# Clientul își spawn-uiește playerul când se conectează
 	await multiplayer.connected_to_server

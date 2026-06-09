@@ -26,6 +26,12 @@ func spawn_player(id: int):
 	var player = PLAYER_SCENE.instantiate()
 	player.name = str(id)
 	player.set_multiplayer_authority(id)
+	
+	if id == 1:
+		player.position = Vector3(2, 1, 2)
+	else:
+		player.position = Vector3(10, 1, 10)
+		
 	get_tree().root.add_child(player)
 	players[id] = player
 	print("Spawned player: ", id)

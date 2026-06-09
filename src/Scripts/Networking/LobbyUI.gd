@@ -16,7 +16,14 @@ func _ready():
 
 func _on_host_pressed():
 	NetworkManager.host()
-	status_label.text = "Hosting... Waiting for player 2"
+	
+	var local_ip = "localhost"
+	for ip in IP.get_local_addresses():
+		if ip.begins_with("192.168.") or ip.begins_with("10.") or ip.begins_with("172."):
+			local_ip = ip
+			break
+			
+	status_label.text = "Hosting pe IP: " + local_ip + "\nSpune-i colegului să bage acest IP!"
 	host_button.disabled = true
 	join_button.disabled = true
 

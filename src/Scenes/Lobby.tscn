@@ -36,7 +36,6 @@ alignment = 1
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 placeholder_text = "Introdu IP (ex: 192.168.1.1)"
-max_length = 5
 
 [node name="Join" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1617059973]
 layout_mode = 2

@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Echo Chamber"
-run/main_scene="uid://doskk84mnhng2"
+run/main_scene="uid://pqkpr1iur23u"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

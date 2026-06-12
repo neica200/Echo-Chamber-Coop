@@ -157,6 +157,9 @@ func _physics_process(delta):
 
 	move_and_slide()
 	
+	if is_multiplayer_authority():
+		rpc("sync_movement", position, rotation)
+	
 	if is_on_floor() and direction.length() > 0.1:
 		walk_distance += velocity.length() * delta
 		if walk_distance > 1.8: # Play sound every 1.8 units walked
@@ -164,6 +167,12 @@ func _physics_process(delta):
 			_play_footstep()
 	else:
 		walk_distance = 0.0
+
+@rpc("unreliable", "any_peer")
+func sync_movement(pos: Vector3, rot: Vector3):
+	if not is_multiplayer_authority():
+		position = pos
+		rotation = rot
 	
 	# Am mutat interacțiunea în _unhandled_input (pe Click Stânga)
 	# Dar lăsăm și E funcțional în caz că userul îl apasă din obișnuință

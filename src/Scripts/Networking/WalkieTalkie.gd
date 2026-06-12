@@ -99,12 +99,18 @@ func _setup_radio_bus() -> void:
 
 # ── 2. CAPTURA MICROFON ────────────────────────────────────
 func _setup_mic_capture() -> void:
-	# Creăm un bus separat "Mic" doar pentru captură (fără playback local)
 	if AudioServer.get_bus_index("MicCapture") == -1:
+		# Create a destination bus that is muted so we don't hear ourselves
+		AudioServer.add_bus()
+		var mute_idx = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(mute_idx, "MuteBus")
+		AudioServer.set_bus_mute(mute_idx, true)
+
+		# Create the capture bus
 		AudioServer.add_bus()
 		var idx = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(idx, "MicCapture")
-		AudioServer.set_bus_mute(idx, true)  # nu vrem să ne auzim pe noi
+		AudioServer.set_bus_send(idx, "MuteBus") # Trimitem spre bus-ul mut
 
 	var cap_effect = AudioEffectCapture.new()
 	cap_effect.buffer_length = 0.2

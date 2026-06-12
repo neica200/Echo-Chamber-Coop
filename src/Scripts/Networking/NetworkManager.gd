@@ -44,6 +44,8 @@ func _on_all_players_ready() -> void:
 
 @rpc("authority", "call_local")
 func change_scene() -> void:
+	GameStats.start_time = Time.get_unix_time_from_system()
+	GameStats.total_time = 0.0
 	get_tree().change_scene_to_file("res://Scenes/Rooms/TestRoomGeneration.tscn")
 
 func host():

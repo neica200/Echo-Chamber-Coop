@@ -5,6 +5,13 @@ var digit_value = ""
 
 # Funcția pe care PlayerController-ul tău (Jucătorul) o caută când apasă E cu laserul
 func interact():
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("sync_interact")
+	else:
+		sync_interact()
+
+@rpc("any_peer", "call_local")
+func sync_interact():
 	if numpad_parent:
 		animate_press()
 		# Trimitem apăsarea înapoi la panoul principal

@@ -14,15 +14,24 @@ func interact():
 		
 	if player.has_method("has_item") and player.has_item(required_item):
 		print("🔓 Ai descuiat sertarul folosind: ", required_item)
-		is_open = true
-		AudioManager.play_success()
+		if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+			rpc("sync_drawer_open")
+		else:
+			sync_drawer_open()
+			
 		player.remove_item(required_item)
-		GameEvents.trigger_drawer_opened()
-		open_animation()
 	else:
 		AudioManager.play_error(-15.0) # Mai încet!
 		print("🔒 E încuiat. Ai nevoie de: ", required_item)
 		show_locked_message()
+
+@rpc("any_peer", "call_local")
+func sync_drawer_open():
+	if is_open: return
+	is_open = true
+	AudioManager.play_success()
+	GameEvents.trigger_drawer_opened()
+	open_animation()
 
 func show_locked_message():
 	var label = Label3D.new()

@@ -147,6 +147,13 @@ func receive_3d_click(hit_position: Vector3):
 
 
 func _on_btn_pressed(btn_id: String):
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("sync_btn_pressed", btn_id)
+	else:
+		sync_btn_pressed(btn_id)
+
+@rpc("any_peer", "call_local")
+func sync_btn_pressed(btn_id: String):
 	if is_hacked: return
 	
 	current_sequence.append(btn_id)

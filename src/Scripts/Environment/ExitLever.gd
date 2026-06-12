@@ -4,6 +4,13 @@ extends StaticBody3D
 var pulled = false
 
 func interact():
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("sync_interact")
+	else:
+		sync_interact()
+
+@rpc("any_peer", "call_local")
+func sync_interact():
 	if pulled: return
 	
 	GameEvents.pull_exit_lever(lever_id)

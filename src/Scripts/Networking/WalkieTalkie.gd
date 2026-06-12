@@ -192,7 +192,7 @@ func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
 		receive_voice_chunk.rpc_id(id, bytes)
 
 # ── PRIMIRE VOCE ────────────────────────────────────────────
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "reliable", "call_remote", 2)
 func receive_voice_chunk(bytes: PackedByteArray) -> void:
 	# Nu ne jucăm pe noi înșine
 	if multiplayer.get_remote_sender_id() == multiplayer.get_unique_id():

@@ -73,3 +73,7 @@ func check_solution():
 				get_node("/root/HintAgent").register_wrong_attempt("fuse_puzzle")
 			if has_node("/root/SaboteurAgent"):
 				get_node("/root/SaboteurAgent").register_wrong_attempt("fuse_puzzle", "Player2")
+			if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+				GameEvents.rpc("sync_mistake")
+			else:
+				GameEvents.sync_mistake()

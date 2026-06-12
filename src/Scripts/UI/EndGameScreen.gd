@@ -71,8 +71,8 @@ func show_results() -> void:
 	rank_title.add_theme_color_override("font_color", rd["color"])
 
 	value_time.text   = _format_time(stats["time"])
-	value_errors.text = str(stats["numpad_mistakes"])
-	value_score.text  = "%d / 100" % _calculate_score(stats["time"], stats["numpad_mistakes"])
+	value_errors.text = str(stats["total_mistakes"])
+	value_score.text  = "%d / 100" % _calculate_score(stats["time"], stats["total_mistakes"])
 
 	feedback_label.text = rd["feedback"]
 
@@ -109,14 +109,14 @@ func _format_time(seconds: float) -> String:
 
 # ── BUTOANE ────────────────────────────────────────────────
 func _on_replay_pressed() -> void:
-	GameStats.numpad_mistakes = 0
+	GameStats.total_mistakes = 0
 	GameStats.start_time      = Time.get_unix_time_from_system()
 	GameStats.total_time      = 0.0
 	GameStats.puzzles_solved  = 0
 	get_tree().reload_current_scene()
 
 func _on_menu_pressed() -> void:
-	GameStats.numpad_mistakes = 0
+	GameStats.total_mistakes = 0
 	GameStats.total_time      = 0.0
 	GameStats.puzzles_solved  = 0
 	get_tree().change_scene_to_file("res://Scenes/MainMenu.tscn.tscn")

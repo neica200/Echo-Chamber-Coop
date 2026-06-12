@@ -56,6 +56,10 @@ func button_pressed(color: String):
 			get_node("/root/HintAgent").register_wrong_attempt("color_sequence")
 		if has_node("/root/SaboteurAgent"):
 			get_node("/root/SaboteurAgent").register_wrong_attempt("color_sequence", "Player1")
+		if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+			GameEvents.rpc("sync_mistake")
+		else:
+			GameEvents.sync_mistake()
 		current_input.clear()
 	elif current_input.size() == target_sequence.size():
 		AudioManager.play_success()

@@ -98,6 +98,7 @@ func _ready():
 	ui_layer.add_child(center)
 
 func _unhandled_input(event):
+	if not is_multiplayer_authority(): return
 	if not is_active: return
 	
 	# Dacă suntem în modul ZOOM (Focus), nu lăsăm mișcarea camerei din mouse
@@ -168,16 +169,11 @@ func _physics_process(delta):
 	else:
 		walk_distance = 0.0
 
-@rpc("unreliable", "any_peer")
+@rpc("any_peer", "unreliable", "call_remote", 1)
 func sync_movement(pos: Vector3, rot: Vector3):
 	if not is_multiplayer_authority():
 		global_position = pos
 		global_rotation = rot
-	
-	# Am mutat interacțiunea în _unhandled_input (pe Click Stânga)
-	# Dar lăsăm și E funcțional în caz că userul îl apasă din obișnuință
-	if Input.is_action_just_pressed("interact") and not is_focused:
-		check_interaction()
 
 func find_focus_point(node: Node) -> Node:
 	var current = node

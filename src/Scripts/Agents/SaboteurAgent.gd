@@ -549,8 +549,8 @@ func _do_light_blackout(target: String):
 	if game_events:
 		game_events.trigger_room_lights_toggled(room_id, false)
 
-	# Dupa 'duration' secunde reaprindem
-	await get_tree().create_timer(duration).timeout
+	# Dupa 6 secunde reaprindem
+	await get_tree().create_timer(6.0).timeout
 	if is_instance_valid(game_events):
 		game_events.trigger_room_lights_toggled(room_id, true)
 
@@ -558,7 +558,7 @@ func _do_light_blackout(target: String):
 	if target == "Both":
 		if is_instance_valid(game_events):
 			game_events.trigger_room_lights_toggled("RoomB", false)
-		await get_tree().create_timer(duration).timeout
+		await get_tree().create_timer(6.0).timeout
 		if is_instance_valid(game_events):
 			game_events.trigger_room_lights_toggled("RoomB", true)
 

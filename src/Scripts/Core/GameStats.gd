@@ -20,11 +20,19 @@ func _on_puzzle_solved(_puzzle_id: String) -> void:
 	puzzles_solved += 1
 	print("[GameStats] Puzzle rezolvat! Total: ", puzzles_solved)
 
+func start_timer() -> void:
+	start_time = Time.get_unix_time_from_system()
+	total_time = 0.0
+	numpad_mistakes = 0
+	puzzles_solved = 0
+	print("[GameStats] Timer reset and started la: ", start_time)
+
 func add_numpad_mistake() -> void:
 	numpad_mistakes += 1
 	print("[GameStats] Greșeală numpad! Total: ", numpad_mistakes)
 
 func _on_game_finished() -> void:
+	if total_time > 0.0: return # Prevent double call
 	end_time = Time.get_unix_time_from_system()
 	total_time = end_time - start_time
 	print("[GameStats] Joc terminat! Timp: ", total_time, "s | Greșeli: ", numpad_mistakes)

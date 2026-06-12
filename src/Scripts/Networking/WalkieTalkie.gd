@@ -23,14 +23,16 @@ extends Node
 #   trimite periodic prin RPC — simplu și funcțional pentru LAN/internet
 #   cu latență acceptabilă (~100–200ms).
 # ============================================================
-
-const SAMPLE_RATE    = 22050   # Hz — mai mic = mai puțin bandwidth
-const CHUNK_DURATION = 0.1     # secunde per chunk RPC
-const SAMPLES_PER_CHUNK = int(SAMPLE_RATE * CHUNK_DURATION)
+# --- SETĂRI CAPTURĂ ---
+const CHUNK_DURATION = 0.02     # 20ms per chunk (pt a fi sub MTU de 1400 bytes, adică max 250 floats)
+var sample_rate: float = 44100.0
+var decimated_rate: float = 11025.0
+var samples_per_chunk: int = 1102
 
 var is_transmitting: bool = false
 var mic_capture: AudioStreamMicrophone
 var playback: AudioStreamGeneratorPlayback
+var receive_buffer: PackedFloat32Array = PackedFloat32Array()
 
 # Nodul de playback pentru vocea primită
 var _voice_player: AudioStreamPlayer
@@ -44,10 +46,13 @@ var _sample_accumulator: PackedFloat32Array
 # Creăm bus-ul "Radio" cu 3 efecte în lanț
 
 func _ready() -> void:
+	sample_rate = AudioServer.get_mix_rate()
+	decimated_rate = sample_rate / 4.0
+	samples_per_chunk = int(decimated_rate * CHUNK_DURATION)
 	_setup_radio_bus()
 	_setup_mic_capture()
 	_setup_voice_player()
-	print("[WalkieTalkie] Sistem inițializat. Ține T pentru a transmite.")
+	print("[WalkieTalkie] Sistem inițializat. Rate: ", sample_rate, " Ține T pentru a transmite.")
 
 # ── 1. BUS AUDIO "Radio" cu efecte distorsion ──────────────
 func _setup_radio_bus() -> void:
@@ -127,8 +132,8 @@ func _setup_mic_capture() -> void:
 func _setup_voice_player() -> void:
 	_voice_player = AudioStreamPlayer.new()
 	var gen = AudioStreamGenerator.new()
-	gen.mix_rate = SAMPLE_RATE
-	gen.buffer_length = 0.5
+	gen.mix_rate = decimated_rate
+	gen.buffer_length = 1.0
 	_voice_player.stream = gen
 	_voice_player.bus = "Radio"   # ← vocea primită trece prin efectele radio!
 	_voice_player.volume_db = 6.0
@@ -145,6 +150,20 @@ func _process(_delta: float) -> void:
 
 	if is_transmitting:
 		_capture_and_send()
+		
+	# --- JITTER BUFFER & PLAYBACK ---
+	if receive_buffer.size() > 0:
+		if not _voice_player.playing:
+			_voice_player.play()
+		if playback == null:
+			playback = _voice_player.get_stream_playback()
+			
+		var frames_available = playback.get_frames_available()
+		if frames_available > 0:
+			var to_push = min(receive_buffer.size(), frames_available)
+			for i in range(to_push):
+				playback.push_frame(Vector2(receive_buffer[i], receive_buffer[i]))
+			receive_buffer = receive_buffer.slice(to_push)
 
 func start_transmit() -> void:
 	if is_transmitting: return
@@ -170,37 +189,30 @@ func _capture_and_send() -> void:
 	if frames <= 0: return
 
 	var data: PackedVector2Array = _capture_effect.get_buffer(frames)
-	for frame in data:
-		# Mono: media stânga + dreapta
-		_sample_accumulator.append((frame.x + frame.y) * 0.5)
+	for i in range(data.size()):
+		if i % 4 == 0:
+			# Mono: media stânga + dreapta
+			_sample_accumulator.append((data[i].x + data[i].y) * 0.5)
 
-	if _sample_accumulator.size() >= SAMPLES_PER_CHUNK:
-		var chunk = _sample_accumulator.slice(0, SAMPLES_PER_CHUNK)
-		_sample_accumulator = _sample_accumulator.slice(SAMPLES_PER_CHUNK)
+	if _sample_accumulator.size() >= samples_per_chunk:
+		var chunk = _sample_accumulator.slice(0, samples_per_chunk)
+		_sample_accumulator = _sample_accumulator.slice(samples_per_chunk)
 		_send_chunk_rpc(chunk)
 
 func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
+	if not multiplayer.has_multiplayer_peer(): return
 	var bytes = samples.to_byte_array()
 	# Trimitem explicit la toți peers
 	for id in multiplayer.get_peers():
 		receive_voice_chunk.rpc_id(id, bytes)
 
 # ── PRIMIRE VOCE ────────────────────────────────────────────
-@rpc("any_peer", "unreliable")
+@rpc("any_peer", "unreliable", "call_remote", 2)
 func receive_voice_chunk(bytes: PackedByteArray) -> void:
-	# Nu ne jucăm pe noi înșine
 	if multiplayer.get_remote_sender_id() == multiplayer.get_unique_id():
 		return
-
 	var samples = bytes.to_float32_array()
-	if playback == null:
-		playback = _voice_player.get_stream_playback()
-
-	# Injectăm mostrele în generator — AudioStreamGeneratorPlayback le redă
-	var frames_available = playback.get_frames_available()
-	var to_push = min(samples.size(), frames_available)
-	for i in range(to_push):
-		playback.push_frame(Vector2(samples[i], samples[i]))
+	receive_buffer.append_array(samples)
 
 # ── UTILITY pentru UI ──────────────────────────────────────
 func get_transmit_state() -> bool:

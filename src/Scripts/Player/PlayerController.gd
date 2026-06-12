@@ -19,6 +19,9 @@ var original_camera_parent: Node3D
 @onready var camera = $Camera3D
 @onready var interaction_ray = $Camera3D/RayCast3D
 
+const GRANDPA_MODEL = preload("res://Scripts/Player/Grandpa.glb")
+const PUNK_MODEL = preload("res://Scripts/Player/Punk.glb")
+
 # --- INVENTORY SYSTEM ---
 var inventory: Array[String] = []
 var inventory_label: Label
@@ -57,6 +60,17 @@ func _ready():
 		set_process(false)
 		set_physics_process(false)
 		set_process_unhandled_input(false)
+		# Acesta e un jucător de rețea. Îi dăm un model!
+		var model = null
+		if str(name) == "1":
+			model = GRANDPA_MODEL.instantiate()
+		else:
+			model = PUNK_MODEL.instantiate()
+			model.scale = Vector3(1.2, 1.2, 1.2) # Punk puțin mai mare
+			
+		add_child(model)
+		# De asemenea, coborâm modelul cu un metru ca să atingă podeaua (Camera e la înălțimea ochilor)
+		model.position.y -= 1.0
 		return
 	if is_active:
 		camera.make_current()
@@ -98,6 +112,7 @@ func _ready():
 	ui_layer.add_child(center)
 
 func _unhandled_input(event):
+	if not is_multiplayer_authority(): return
 	if not is_active: return
 	
 	# Dacă suntem în modul ZOOM (Focus), nu lăsăm mișcarea camerei din mouse
@@ -129,6 +144,9 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
+func _process(delta):
+	update_inventory_ui()
+
 func _physics_process(delta):
 	if not is_active: return
 	
@@ -157,8 +175,8 @@ func _physics_process(delta):
 
 	move_and_slide()
 	
-	if is_multiplayer_authority():
-		rpc("sync_movement", position, rotation)
+	if multiplayer.has_multiplayer_peer() and is_multiplayer_authority():
+		rpc("sync_movement", global_position, global_rotation)
 	
 	if is_on_floor() and direction.length() > 0.1:
 		walk_distance += velocity.length() * delta
@@ -168,16 +186,11 @@ func _physics_process(delta):
 	else:
 		walk_distance = 0.0
 
-@rpc("unreliable", "any_peer")
+@rpc("any_peer", "unreliable", "call_remote", 1)
 func sync_movement(pos: Vector3, rot: Vector3):
 	if not is_multiplayer_authority():
-		position = pos
-		rotation = rot
-	
-	# Am mutat interacțiunea în _unhandled_input (pe Click Stânga)
-	# Dar lăsăm și E funcțional în caz că userul îl apasă din obișnuință
-	if Input.is_action_just_pressed("interact") and not is_focused:
-		check_interaction()
+		global_position = pos
+		global_rotation = rot
 
 func find_focus_point(node: Node) -> Node:
 	var current = node
@@ -292,13 +305,19 @@ func remove_item(item_name: String):
 		update_inventory_ui()
 
 func update_inventory_ui():
-	if inventory.is_empty():
-		inventory_label.text = "Inventar: Gol"
+	if inventory.size() == 0:
+		inventory_label.text = "Inventar gol"
 	else:
-		var txt = "Inventar:"
-		for item in inventory:
-			txt += "\n- " + item
-		inventory_label.text = txt
+		inventory_label.text = "Inventar: " + ", ".join(inventory)
+
+	# --- WALKIE TALKIE UI ---
+	if multiplayer.has_multiplayer_peer():
+		var wt = get_node_or_null("/root/WalkieTalkie")
+		if wt:
+			if wt.is_transmitting:
+				inventory_label.text += "\n\n[ 🎤 TRANSMITING... ]"
+			elif wt.receive_buffer.size() > 0 or (wt._voice_player and wt._voice_player.playing):
+				inventory_label.text += "\n\n[ 🔊 RECEIVING AUDIO... ]"
 
 # --- SOUND SYSTEM ---
 func _play_footstep():

@@ -3,6 +3,14 @@ extends StaticBody3D
 @export var lever_id: int = 1
 var pulled = false
 
+func _ready():
+	var current = self
+	while current:
+		if "RoomB" in current.name:
+			lever_id = 2
+			break
+		current = current.get_parent()
+
 func interact():
 	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
 		rpc("sync_interact")

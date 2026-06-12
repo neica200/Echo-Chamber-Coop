@@ -137,7 +137,32 @@ func generate_rooms(seed_value: int) -> void:
 	
 	# Spawnăm jucătorii automat
 	var player_scene = preload("res://Scenes/Rooms/player.tscn")
-	if player_scene:
+	var is_multiplayer = false
+	if has_node("/root/NetworkManager"):
+		var nm = get_node("/root/NetworkManager")
+		if nm.players.size() > 0:
+			is_multiplayer = true
+			for id in nm.players.keys():
+				var p = nm.players[id]
+				if id == 1 and room_a_spawn:
+					p.global_position = room_a_spawn.global_position
+					p.rotation_degrees = room_a_spawn.rotation_degrees
+				elif id != 1 and room_b_spawn:
+					p.global_position = room_b_spawn.global_position
+					p.rotation_degrees = room_b_spawn.rotation_degrees
+				
+				# Adăugăm lumina pe network player dacă nu are deja
+				if not p.get_node("Camera3D").has_node("Flashlight"):
+					var light = OmniLight3D.new()
+					light.name = "Flashlight"
+					light.light_color = Color(1.0, 0.95, 0.85)
+					light.light_energy = 0.3
+					light.shadow_enabled = true
+					light.omni_range = 6.0
+					light.omni_attenuation = 2.0
+					p.get_node("Camera3D").add_child(light)
+
+	if not is_multiplayer and player_scene:
 		if room_a_spawn:
 			player1 = player_scene.instantiate()
 			player1.name = "Player1"
@@ -147,6 +172,7 @@ func generate_rooms(seed_value: int) -> void:
 			player1.is_active = true
 			
 			var light = OmniLight3D.new()
+			light.name = "Flashlight"
 			light.light_color = Color(1.0, 0.95, 0.85)
 			light.light_energy = 0.3 # Lanternă redusă
 			light.shadow_enabled = true
@@ -162,6 +188,7 @@ func generate_rooms(seed_value: int) -> void:
 			player2.is_active = false
 			
 			var light2 = OmniLight3D.new()
+			light2.name = "Flashlight"
 			light2.light_color = Color(1.0, 0.95, 0.85)
 			light2.light_energy = 0.3 # Lanternă redusă
 			light2.shadow_enabled = true

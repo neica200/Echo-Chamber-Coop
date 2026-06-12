@@ -53,7 +53,10 @@ func button_pressed(digit: String):
 			GameEvents.trigger_escape_door_opened()
 		else:
 			AudioManager.play_error()
-			GameStats.add_numpad_mistake()
+			if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+				GameEvents.rpc("sync_numpad_mistake")
+			else:
+				GameEvents.sync_numpad_mistake()
 			print("❌ [ERROR] Parolă greșită! S-a resetat.")
 			if has_node("/root/HintAgent"):
 				get_node("/root/HintAgent").register_wrong_attempt("numpad_puzzle")

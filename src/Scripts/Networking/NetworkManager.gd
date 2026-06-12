@@ -23,6 +23,17 @@ func _on_peer_disconnected(id: int):
 		players.erase(id)
 
 func spawn_player(id: int):
+	# Curățăm orice jucător vechi rămas din greșeală
+	if players.has(id):
+		if is_instance_valid(players[id]):
+			players[id].queue_free()
+		players.erase(id)
+		
+	var old_node = get_tree().root.get_node_or_null(str(id))
+	if old_node:
+		old_node.name = old_node.name + "_deleted"
+		old_node.queue_free()
+
 	var player = PLAYER_SCENE.instantiate()
 	player.name = str(id)
 	player.set_multiplayer_authority(id)
@@ -48,13 +59,27 @@ func change_scene() -> void:
 		GameStats.start_timer()
 	get_tree().change_scene_to_file("res://Scenes/Rooms/TestRoomGeneration.tscn")
 
+func cleanup_state():
+	for p in players.values():
+		if is_instance_valid(p):
+			p.queue_free()
+	players.clear()
+	if multiplayer.multiplayer_peer:
+		multiplayer.multiplayer_peer.close()
+		multiplayer.multiplayer_peer = null
+
 func host():
+	cleanup_state()
 	var peer = ENetMultiplayerPeer.new()
-	peer.create_server(PORT, MAX_PLAYERS)
+	var err = peer.create_server(PORT, MAX_PLAYERS)
+	if err != OK:
+		print("Failed to host: ", err)
+		return
 	multiplayer.multiplayer_peer = peer
 	spawn_player(multiplayer.get_unique_id())
 
 func join(ip_string: String):
+	cleanup_state()
 	var peer = ENetMultiplayerPeer.new()
 	var join_ip = ip_string
 	var join_port = PORT

@@ -28,6 +28,25 @@ var ui_layer: CanvasLayer
 var walk_distance: float = 0.0
 
 func _ready():
+	# --- LOAD PLAYER MODEL ---
+	var model_scene: PackedScene
+	if name == "1":
+		model_scene = load("res://Scripts/Player/Grandpa.glb")
+	else:
+		model_scene = load("res://Scripts/Player/Punk.glb")
+		
+	if model_scene:
+		var model = model_scene.instantiate()
+		model.position = Vector3(0, -1, 0) # Adjust to align with bottom of CapsuleShape3D
+		model.rotation_degrees = Vector3(0, 180, 0) # Face forward (-Z)
+		add_child(model)
+		
+		# If this is our local player, only cast shadows so it doesn't block the FPS camera
+		if is_multiplayer_authority():
+			for child in model.find_children("*", "VisualInstance3D", true, false):
+				if "cast_shadow" in child:
+					child.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+
 	if not is_multiplayer_authority():
 		camera.current = false
 		set_process(false)

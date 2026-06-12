@@ -192,6 +192,9 @@ func receive_voice_chunk(bytes: PackedByteArray) -> void:
 	if multiplayer.get_remote_sender_id() == multiplayer.get_unique_id():
 		return
 
+	if not _voice_player.playing:
+		_voice_player.play()
+
 	var samples = bytes.to_float32_array()
 	if playback == null:
 		playback = _voice_player.get_stream_playback()

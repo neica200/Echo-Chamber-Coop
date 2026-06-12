@@ -63,8 +63,9 @@ func check_solution():
 		
 		# --- CROSS-ROOM EFFECT ---
 		GameEvents.advance_stage()
-		GameEvents.emit_signal("room_lights_toggled", "RoomA", true)
-		GameEvents.emit_signal("room_lights_toggled", "RoomB", true)
+		GameEvents.trigger_room_lights_toggled("RoomA", true)
+		GameEvents.trigger_room_lights_toggled("RoomB", true)
+		print("[FuseBox] Panoul reparat! Am aprins lumina in A si B!")
 	else:
 		moves_made += 1
 		if moves_made % 8 == 0:
@@ -72,4 +73,3 @@ func check_solution():
 				get_node("/root/HintAgent").register_wrong_attempt("fuse_puzzle")
 			if has_node("/root/SaboteurAgent"):
 				get_node("/root/SaboteurAgent").register_wrong_attempt("fuse_puzzle", "Player2")
-

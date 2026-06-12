@@ -50,7 +50,7 @@ func button_pressed(digit: String):
 			print("✅ [SUCCESS] SEIFUL A FOST DESCHIS! Ai salvat situația!")
 			
 			# --- CROSS-ROOM EFFECT ---
-			GameEvents.emit_signal("escape_door_opened")
+			GameEvents.trigger_escape_door_opened()
 		else:
 			AudioManager.play_error()
 			GameStats.add_numpad_mistake()

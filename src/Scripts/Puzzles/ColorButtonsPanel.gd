@@ -66,4 +66,5 @@ func button_pressed(color: String):
 		GameEvents.advance_stage()
 		
 		# Deschidem seiful din Camera B!
-		GameEvents.emit_signal("safe_opened", "RoomB")
+		GameEvents.trigger_safe_opened("RoomB")
+		AudioManager.play_success()

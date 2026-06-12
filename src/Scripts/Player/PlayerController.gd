@@ -157,7 +157,7 @@ func _physics_process(delta):
 
 	move_and_slide()
 	
-	if is_multiplayer_authority():
+	if multiplayer.has_multiplayer_peer() and is_multiplayer_authority():
 		rpc("sync_movement", global_position, global_rotation)
 	
 	if is_on_floor() and direction.length() > 0.1:

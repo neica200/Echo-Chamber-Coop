@@ -26,7 +26,8 @@ extends Node
 
 const CHUNK_DURATION = 0.1     # secunde per chunk RPC
 var sample_rate: float = 44100.0
-var samples_per_chunk: int = 4410
+var decimated_rate: float = 11025.0
+var samples_per_chunk: int = 1102
 
 var is_transmitting: bool = false
 var mic_capture: AudioStreamMicrophone
@@ -45,7 +46,8 @@ var _sample_accumulator: PackedFloat32Array
 
 func _ready() -> void:
 	sample_rate = AudioServer.get_mix_rate()
-	samples_per_chunk = int(sample_rate * CHUNK_DURATION)
+	decimated_rate = sample_rate / 4.0
+	samples_per_chunk = int(decimated_rate * CHUNK_DURATION)
 	_setup_radio_bus()
 	_setup_mic_capture()
 	_setup_voice_player()
@@ -129,7 +131,7 @@ func _setup_mic_capture() -> void:
 func _setup_voice_player() -> void:
 	_voice_player = AudioStreamPlayer.new()
 	var gen = AudioStreamGenerator.new()
-	gen.mix_rate = sample_rate
+	gen.mix_rate = decimated_rate
 	gen.buffer_length = 1.0
 	_voice_player.stream = gen
 	_voice_player.bus = "Radio"   # ← vocea primită trece prin efectele radio!
@@ -172,9 +174,10 @@ func _capture_and_send() -> void:
 	if frames <= 0: return
 
 	var data: PackedVector2Array = _capture_effect.get_buffer(frames)
-	for frame in data:
-		# Mono: media stânga + dreapta
-		_sample_accumulator.append((frame.x + frame.y) * 0.5)
+	for i in range(data.size()):
+		if i % 4 == 0:
+			# Mono: media stânga + dreapta
+			_sample_accumulator.append((data[i].x + data[i].y) * 0.5)
 
 	if _sample_accumulator.size() >= samples_per_chunk:
 		var chunk = _sample_accumulator.slice(0, samples_per_chunk)
@@ -182,6 +185,7 @@ func _capture_and_send() -> void:
 		_send_chunk_rpc(chunk)
 
 func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
+	if not multiplayer.has_multiplayer_peer(): return
 	var bytes = samples.to_byte_array()
 	# Trimitem explicit la toți peers
 	for id in multiplayer.get_peers():

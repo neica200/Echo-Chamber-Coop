@@ -546,17 +546,21 @@ func _do_light_blackout(target: String):
 		room_id = "RoomA"  # Stingem pe rand
 
 	# Stingem prin semnalul GameEvents
-	if effect == 0:
+	if game_events:
 		game_events.trigger_room_lights_toggled(room_id, false)
-		await get_tree().create_timer(duration).timeout
-		if is_instance_valid(game_events):
-			game_events.trigger_room_lights_toggled(room_id, true)
-	else:
+
+	# Dupa 'duration' secunde reaprindem
+	await get_tree().create_timer(duration).timeout
+	if is_instance_valid(game_events):
+		game_events.trigger_room_lights_toggled(room_id, true)
+
+	# Daca e Both, stingem si RoomB cu un mic delay
+	if target == "Both":
 		if is_instance_valid(game_events):
 			game_events.trigger_room_lights_toggled("RoomB", false)
-			await get_tree().create_timer(duration).timeout
-			if is_instance_valid(game_events):
-				game_events.trigger_room_lights_toggled("RoomB", true)
+		await get_tree().create_timer(duration).timeout
+		if is_instance_valid(game_events):
+			game_events.trigger_room_lights_toggled("RoomB", true)
 
 # ==============================================================================
 # ACTUATOR 5: PLAYER ISOLATION

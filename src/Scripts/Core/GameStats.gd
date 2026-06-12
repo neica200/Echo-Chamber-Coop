@@ -23,7 +23,7 @@ func _on_puzzle_solved(_puzzle_id: String) -> void:
 func start_timer() -> void:
 	start_time = Time.get_unix_time_from_system()
 	total_time = 0.0
-	numpad_mistakes = 0
+	total_mistakes = 0
 	puzzles_solved = 0
 	print("[GameStats] Timer reset and started la: ", start_time)
 

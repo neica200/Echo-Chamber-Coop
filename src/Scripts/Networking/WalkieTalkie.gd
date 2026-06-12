@@ -174,10 +174,10 @@ func _capture_and_send() -> void:
 		_send_chunk_rpc(chunk)
 
 func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
-	# Convertim în bytes pentru transmisie eficientă
 	var bytes = samples.to_byte_array()
-	# Trimitem la TOȚI ceilalți jucători
-	receive_voice_chunk.rpc(bytes)
+	# Trimitem explicit la toți peers
+	for id in multiplayer.get_peers():
+		receive_voice_chunk.rpc_id(id, bytes)
 
 # ── PRIMIRE VOCE ────────────────────────────────────────────
 @rpc("any_peer", "unreliable")

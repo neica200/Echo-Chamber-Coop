@@ -11,6 +11,16 @@ signal escape_door_opened()
 signal drawer_opened()
 signal final_exit_opened()
 
+func trigger_final_exit_opened():
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_final_exit_opened")
+	else:
+		broadcast_final_exit_opened()
+
+@rpc("any_peer", "call_local")
+func broadcast_final_exit_opened():
+	emit_signal("final_exit_opened")
+
 # --- HELPERE MULTIPLAYER ---
 func trigger_room_lights_toggled(room_id: String, state: bool):
 	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
@@ -93,10 +103,10 @@ func pull_exit_lever(id: int):
 		
 	if lever_1_pulled and lever_2_pulled:
 		print("[GameEvents] Ambele manivele trase! Deschid ușa finală!")
-		emit_signal("final_exit_opened")
+		trigger_final_exit_opened()
 		lever_1_pulled = false
 		lever_2_pulled = false
 		lever_timer = 0.0
 	else:
 		# Porniți cronometrul pentru cealaltă manivelă
-		lever_timer = 2.0
+		lever_timer = 5.0

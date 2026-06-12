@@ -56,13 +56,7 @@ const RANK_DATA = {
 }
 
 func _ready() -> void:
-	visible = false
-	GameEvents.escape_door_opened.connect(_on_escape_door_opened)
-	
-
-func _on_escape_door_opened() -> void:
-	# Delay scurt ca să se vadă animația ușii
-	await get_tree().create_timer(1.5).timeout
+	# EndGame.tscn este încărcat DIRECT după ce ușa s-a deschis
 	show_results()
 
 # ── AFIȘARE ────────────────────────────────────────────────

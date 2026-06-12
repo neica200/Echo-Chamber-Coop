@@ -39,6 +39,11 @@ func _ready():
 		var model = model_scene.instantiate()
 		model.position = Vector3(0, -1, 0) # Adjust to align with bottom of CapsuleShape3D
 		model.rotation_degrees = Vector3(0, 180, 0) # Face forward (-Z)
+		
+		# Facem modelul Punk puțin mai mare
+		if name != "1":
+			model.scale = Vector3(1.2, 1.2, 1.2)
+			
 		add_child(model)
 		
 		# If this is our local player, only cast shadows so it doesn't block the FPS camera

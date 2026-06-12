@@ -25,4 +25,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 target_position = Vector3(0, 0, -3)
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=2033326979]
+root_path = NodePath("..")
 replication_config = SubResource("SceneReplicationConfig_s7ouu")

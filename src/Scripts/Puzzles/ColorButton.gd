@@ -5,9 +5,9 @@ var color_name = ""
 
 func receive_3d_click(hit_pos: Vector3):
 	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
-		GameEvents.rpc("sync_color_button_pressed", get_path())
+		GameEvents.rpc("sync_color_button_pressed", color_name)
 	else:
-		GameEvents.sync_color_button_pressed(get_path())
+		GameEvents.sync_color_button_pressed(color_name)
 
 func animate_press():
 	var tween = create_tween()

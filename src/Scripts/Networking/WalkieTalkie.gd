@@ -23,8 +23,8 @@ extends Node
 #   trimite periodic prin RPC — simplu și funcțional pentru LAN/internet
 #   cu latență acceptabilă (~100–200ms).
 # ============================================================
-
-const CHUNK_DURATION = 0.1     # secunde per chunk RPC
+# --- SETĂRI CAPTURĂ ---
+const CHUNK_DURATION = 0.02     # 20ms per chunk (pt a fi sub MTU de 1400 bytes, adică max 250 floats)
 var sample_rate: float = 44100.0
 var decimated_rate: float = 11025.0
 var samples_per_chunk: int = 1102
@@ -207,7 +207,7 @@ func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
 		receive_voice_chunk.rpc_id(id, bytes)
 
 # ── PRIMIRE VOCE ────────────────────────────────────────────
-@rpc("any_peer", "reliable", "call_remote", 2)
+@rpc("any_peer", "unreliable", "call_remote", 2)
 func receive_voice_chunk(bytes: PackedByteArray) -> void:
 	if multiplayer.get_remote_sender_id() == multiplayer.get_unique_id():
 		return

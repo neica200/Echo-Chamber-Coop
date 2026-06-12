@@ -52,6 +52,21 @@ func trigger_safe_opened(room_id: String):
 func broadcast_safe_opened(room_id: String):
 	emit_signal("safe_opened", room_id)
 
+@rpc("any_peer", "call_local")
+func sync_puzzle_solved(puzzle_id: String):
+	emit_signal("puzzle_solved", puzzle_id)
+	
+@rpc("any_peer", "call_local")
+func sync_color_button_pressed(button_path: NodePath):
+	if current_stage < 2:
+		print("🔒 [Sistem] Trebuie să rezolvi panoul electric (Faza 1) mai întâi!")
+		return
+		
+	var btn = get_node_or_null(button_path)
+	if btn and btn.panel_parent and btn.panel_parent.has_method("button_pressed"):
+		btn.animate_press()
+		btn.panel_parent.button_pressed(btn.color_name)
+
 func trigger_drawer_opened():
 	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
 		rpc("broadcast_drawer_opened")

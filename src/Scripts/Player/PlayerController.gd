@@ -144,6 +144,9 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
+func _process(delta):
+	update_inventory_ui()
+
 func _physics_process(delta):
 	if not is_active: return
 	
@@ -302,13 +305,19 @@ func remove_item(item_name: String):
 		update_inventory_ui()
 
 func update_inventory_ui():
-	if inventory.is_empty():
-		inventory_label.text = "Inventar: Gol"
+	if inventory.size() == 0:
+		inventory_label.text = "Inventar gol"
 	else:
-		var txt = "Inventar:"
-		for item in inventory:
-			txt += "\n- " + item
-		inventory_label.text = txt
+		inventory_label.text = "Inventar: " + ", ".join(inventory)
+
+	# --- WALKIE TALKIE UI ---
+	if multiplayer.has_multiplayer_peer():
+		var wt = get_node_or_null("/root/WalkieTalkie")
+		if wt:
+			if wt.is_transmitting:
+				inventory_label.text += "\n\n[ 🎤 TRANSMITING... ]"
+			elif wt.receive_buffer.size() > 0 or (wt._voice_player and wt._voice_player.playing):
+				inventory_label.text += "\n\n[ 🔊 RECEIVING AUDIO... ]"
 
 # --- SOUND SYSTEM ---
 func _play_footstep():

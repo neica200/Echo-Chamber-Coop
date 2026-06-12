@@ -57,8 +57,8 @@ func sync_puzzle_solved(puzzle_id: String):
 	emit_signal("puzzle_solved", puzzle_id)
 
 @rpc("any_peer", "call_local")
-func sync_numpad_mistake():
-	GameStats.add_numpad_mistake()
+func sync_mistake():
+	GameStats.add_mistake()
 
 @rpc("any_peer", "call_local")
 func sync_color_button_pressed(color_name: String):

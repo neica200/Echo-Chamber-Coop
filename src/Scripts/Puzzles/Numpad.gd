@@ -29,9 +29,9 @@ func _ready():
 
 # Această funcție e chemată de Buton când e lovit cu raza laser a jucătorului
 func button_pressed(digit: String):
-	# if GameEvents.current_stage < 4:
-	# 	print("🔒 [Sistem] Trebuie să obții codul final din Terminal (Faza 3) mai întâi!")
-	# 	return
+	if GameEvents.current_stage < 3:
+		print("🔒 [Sistem] Trebuie să obții codul final din Terminal (Faza 3) mai întâi!")
+		return
 		
 	current_input += digit
 	AudioManager.play_click()
@@ -54,9 +54,9 @@ func button_pressed(digit: String):
 		else:
 			AudioManager.play_error()
 			if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
-				GameEvents.rpc("sync_numpad_mistake")
+				GameEvents.rpc("sync_mistake")
 			else:
-				GameEvents.sync_numpad_mistake()
+				GameEvents.sync_mistake()
 			print("❌ [ERROR] Parolă greșită! S-a resetat.")
 			if has_node("/root/HintAgent"):
 				get_node("/root/HintAgent").register_wrong_attempt("numpad_puzzle")

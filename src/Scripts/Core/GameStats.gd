@@ -4,7 +4,7 @@ extends Node
 var start_time: float = 0.0
 var end_time: float = 0.0
 var puzzles_solved: int = 0
-var numpad_mistakes: int = 0
+var total_mistakes: int = 0
 var total_time: float = 0.0
 
 func _ready() -> void:
@@ -27,26 +27,26 @@ func start_timer() -> void:
 	puzzles_solved = 0
 	print("[GameStats] Timer reset and started la: ", start_time)
 
-func add_numpad_mistake() -> void:
-	numpad_mistakes += 1
-	print("[GameStats] Greșeală numpad! Total: ", numpad_mistakes)
+func add_mistake() -> void:
+	total_mistakes += 1
+	print("[GameStats] Greșeală! Total: ", total_mistakes)
 
 func _on_game_finished() -> void:
 	if total_time > 0.0: return # Prevent double call
 	end_time = Time.get_unix_time_from_system()
 	total_time = end_time - start_time
-	print("[GameStats] Joc terminat! Timp: ", total_time, "s | Greșeli: ", numpad_mistakes)
+	print("[GameStats] Joc terminat! Timp: ", total_time, "s | Greșeli: ", total_mistakes)
 
 func get_rank() -> String:
-	# Rank bazat pe timp și greșeli
-	var score = total_time + (numpad_mistakes * 30)
-	if score < 300:
+	# Rank bazat pe timp și greșeli. O greșeală e penalizată cu 60 secunde.
+	var score = total_time + (total_mistakes * 60)
+	if total_mistakes == 0 and score < 300:
 		return "S"
-	elif score < 600:
+	elif score < 400:
 		return "A"
-	elif score < 900:
+	elif score < 600:
 		return "B"
-	elif score < 1200:
+	elif score < 900:
 		return "C"
 	else:
 		return "D"
@@ -55,6 +55,6 @@ func get_stats() -> Dictionary:
 	return {
 		"time": total_time,
 		"puzzles_solved": puzzles_solved,
-		"numpad_mistakes": numpad_mistakes,
+		"total_mistakes": total_mistakes,
 		"rank": get_rank()
 	}

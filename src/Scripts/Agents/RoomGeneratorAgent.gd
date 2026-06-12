@@ -85,7 +85,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_L:
-		GameEvents.room_lights_toggled.emit("RoomA", true)
+		GameEvents.trigger_room_lights_toggled("RoomA", true)
 
 func _setup_film_grain():
 	var canvas = CanvasLayer.new()

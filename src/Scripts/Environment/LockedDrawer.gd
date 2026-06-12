@@ -17,7 +17,7 @@ func interact():
 		is_open = true
 		AudioManager.play_success()
 		player.remove_item(required_item)
-		GameEvents.emit_signal("drawer_opened")
+		GameEvents.trigger_drawer_opened()
 		open_animation()
 	else:
 		AudioManager.play_error(-15.0) # Mai încet!

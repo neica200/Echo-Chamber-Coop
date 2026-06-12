@@ -11,6 +11,47 @@ signal escape_door_opened()
 signal drawer_opened()
 signal final_exit_opened()
 
+# --- HELPERE MULTIPLAYER ---
+func trigger_room_lights_toggled(room_id: String, state: bool):
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_room_lights_toggled", room_id, state)
+	else:
+		broadcast_room_lights_toggled(room_id, state)
+
+@rpc("any_peer", "call_local")
+func broadcast_room_lights_toggled(room_id: String, state: bool):
+	emit_signal("room_lights_toggled", room_id, state)
+
+func trigger_escape_door_opened():
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_escape_door_opened")
+	else:
+		broadcast_escape_door_opened()
+
+@rpc("any_peer", "call_local")
+func broadcast_escape_door_opened():
+	emit_signal("escape_door_opened")
+
+func trigger_safe_opened(room_id: String):
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_safe_opened", room_id)
+	else:
+		broadcast_safe_opened(room_id)
+
+@rpc("any_peer", "call_local")
+func broadcast_safe_opened(room_id: String):
+	emit_signal("safe_opened", room_id)
+
+func trigger_drawer_opened():
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_drawer_opened")
+	else:
+		broadcast_drawer_opened()
+
+@rpc("any_peer", "call_local")
+func broadcast_drawer_opened():
+	emit_signal("drawer_opened")
+
 # --- STATE MACHINE ---
 var current_stage = 1
 
@@ -19,7 +60,14 @@ func _ready():
 	current_stage = 1
 
 func advance_stage():
-	current_stage += 1
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("broadcast_stage_changed", current_stage + 1)
+	else:
+		broadcast_stage_changed(current_stage + 1)
+
+@rpc("any_peer", "call_local")
+func broadcast_stage_changed(new_stage: int):
+	current_stage = new_stage
 	print(">>> PROGRESIE: Jocul a trecut la Faza ", current_stage, " <<<")
 	emit_signal("stage_changed", current_stage)
 

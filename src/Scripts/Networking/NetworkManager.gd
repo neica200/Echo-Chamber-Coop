@@ -26,6 +26,7 @@ func spawn_player(id: int):
 	var player = PLAYER_SCENE.instantiate()
 	player.name = str(id)
 	player.set_multiplayer_authority(id)
+	player.get_node("MultiplayerSynchronizer").set_multiplayer_authority(id)
 	
 	if id == 1:
 		player.position = Vector3(2, 1, 2)

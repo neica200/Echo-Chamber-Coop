@@ -12,7 +12,7 @@ func _ready() -> void:
 	var game_events = get_node_or_null("/root/GameEvents")
 	if game_events:
 		game_events.puzzle_solved.connect(_on_puzzle_solved)
-		game_events.escape_door_opened.connect(_on_game_finished)
+		game_events.final_exit_opened.connect(_on_game_finished)
 	start_time = Time.get_unix_time_from_system()
 	print("[GameStats] Tracking pornit!")
 

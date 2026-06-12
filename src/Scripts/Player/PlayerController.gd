@@ -19,6 +19,9 @@ var original_camera_parent: Node3D
 @onready var camera = $Camera3D
 @onready var interaction_ray = $Camera3D/RayCast3D
 
+const GRANDPA_MODEL = preload("res://Scripts/Player/Grandpa.glb")
+const PUNK_MODEL = preload("res://Scripts/Player/Punk.glb")
+
 # --- INVENTORY SYSTEM ---
 var inventory: Array[String] = []
 var inventory_label: Label
@@ -57,6 +60,17 @@ func _ready():
 		set_process(false)
 		set_physics_process(false)
 		set_process_unhandled_input(false)
+		# Acesta e un jucător de rețea. Îi dăm un model!
+		var model = null
+		if str(name) == "1":
+			model = GRANDPA_MODEL.instantiate()
+		else:
+			model = PUNK_MODEL.instantiate()
+			model.scale = Vector3(1.2, 1.2, 1.2) # Punk puțin mai mare
+			
+		add_child(model)
+		# De asemenea, coborâm modelul cu un metru ca să atingă podeaua (Camera e la înălțimea ochilor)
+		model.position.y -= 1.0
 		return
 	if is_active:
 		camera.make_current()

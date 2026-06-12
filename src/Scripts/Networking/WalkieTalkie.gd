@@ -32,6 +32,7 @@ var samples_per_chunk: int = 1102
 var is_transmitting: bool = false
 var mic_capture: AudioStreamMicrophone
 var playback: AudioStreamGeneratorPlayback
+var receive_buffer: PackedFloat32Array = PackedFloat32Array()
 
 # Nodul de playback pentru vocea primită
 var _voice_player: AudioStreamPlayer
@@ -149,6 +150,20 @@ func _process(_delta: float) -> void:
 
 	if is_transmitting:
 		_capture_and_send()
+		
+	# --- JITTER BUFFER & PLAYBACK ---
+	if receive_buffer.size() > 0:
+		if not _voice_player.playing:
+			_voice_player.play()
+		if playback == null:
+			playback = _voice_player.get_stream_playback()
+			
+		var frames_available = playback.get_frames_available()
+		if frames_available > 0:
+			var to_push = min(receive_buffer.size(), frames_available)
+			for i in range(to_push):
+				playback.push_frame(Vector2(receive_buffer[i], receive_buffer[i]))
+			receive_buffer = receive_buffer.slice(to_push)
 
 func start_transmit() -> void:
 	if is_transmitting: return
@@ -194,22 +209,10 @@ func _send_chunk_rpc(samples: PackedFloat32Array) -> void:
 # ── PRIMIRE VOCE ────────────────────────────────────────────
 @rpc("any_peer", "reliable", "call_remote", 2)
 func receive_voice_chunk(bytes: PackedByteArray) -> void:
-	# Nu ne jucăm pe noi înșine
 	if multiplayer.get_remote_sender_id() == multiplayer.get_unique_id():
 		return
-
-	if not _voice_player.playing:
-		_voice_player.play()
-
 	var samples = bytes.to_float32_array()
-	if playback == null:
-		playback = _voice_player.get_stream_playback()
-
-	# Injectăm mostrele în generator — AudioStreamGeneratorPlayback le redă
-	var frames_available = playback.get_frames_available()
-	var to_push = min(samples.size(), frames_available)
-	for i in range(to_push):
-		playback.push_frame(Vector2(samples[i], samples[i]))
+	receive_buffer.append_array(samples)
 
 # ── UTILITY pentru UI ──────────────────────────────────────
 func get_transmit_state() -> bool:

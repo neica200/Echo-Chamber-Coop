@@ -5,6 +5,13 @@ var color_name = ""
 
 # Interacțiunea generată de laserul jucătorului
 func receive_3d_click(hit_pos: Vector3):
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		rpc("sync_receive_3d_click", hit_pos)
+	else:
+		sync_receive_3d_click(hit_pos)
+
+@rpc("any_peer", "call_local")
+func sync_receive_3d_click(hit_pos: Vector3):
 	if GameEvents.current_stage < 2:
 		print("🔒 [Sistem] Trebuie să rezolvi panoul electric (Faza 1) mai întâi!")
 		return

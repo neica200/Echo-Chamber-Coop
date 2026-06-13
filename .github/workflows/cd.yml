@@ -5,8 +5,8 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  cd-release:
-    name: Continuous Deployment (CD)
+  cd:
+    name: cd
     runs-on: ubuntu-latest
 
     steps:

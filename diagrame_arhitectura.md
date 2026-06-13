@@ -1,7 +1,6 @@
-# Diagrame de Arhitectură și Workflow - Echo Chamber Co-op
+# Architecture and Workflow Diagrams - Echo Chamber Co-op
 
-## 1. Arhitectura Componentelor (UML Class Diagram)
-Această diagramă ilustrează structura Singleton-urilor, a claselor principale, și a noilor componente de rețea, AI Generativ și Backend, evidențiind modul de comunicare global.
+## 1. Component Architecture (UML Class Diagram)
 
 ```mermaid
 classDiagram
@@ -68,143 +67,180 @@ classDiagram
         +sync_movement()
     }
 
-    PlayerController --> NetworkManager : Conexiune P2P
-    PlayerController --> WalkieTalkie : Capturează/Trimite voce (Push-to-Talk)
+    PlayerController --> NetworkManager : P2P Connection
+    PlayerController --> WalkieTalkie : Captures/Sends Voice (Push-to-Talk)
     PaintingAI --> NetworkManager : RPC Sync Prompt
-    HintAgent --> GameEvents : Ascultă semnale
-    SaboteurAgent --> HintAgent : Verifică Semafor Ollama
-    DifficultyAgent --> GameEvents : Ascultă stage_changed
-    DifficultyAgent --> PuzzleGen : Modifică parametrii (SCALE_UP/DOWN)
+    HintAgent --> GameEvents : Listens to signals
+    SaboteurAgent --> HintAgent : Checks Ollama Semaphore
+    DifficultyAgent --> GameEvents : Listens to stage_changed
+    DifficultyAgent --> PuzzleGen : Modifies parameters
 ```
 
-## 2. Diagrama de Flux a Jocului (Workflow / State Diagram)
-Flow-ul actualizat al Escape Room-ului, incluzând conectarea multiplayer, generarea AI-ului vizual la început și încheierea sesiunii cu afișarea ecranului de final.
+## 2. Game Flow (Workflow / State Diagram)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Lobby : Lansare Joc
-    Lobby --> Generare_Sesiune : Autentificare & NetworkManager (Host/Join)
+    [*] --> Lobby : Launch Game
+    Lobby --> Session_Generation : Authentication & NetworkManager (Host/Join)
     
-    state Generare_Sesiune {
-        PaintingAI_Request : Se generează tabloul AI (Pollinations/DALL-E)
-        Procedural_Gen : Se generează structura camerelor
+    state Session_Generation {
+        PaintingAI_Request : Generates AI Painting (Pollinations/DALL-E)
+        Procedural_Gen : Generates Room Layouts
     }
     
-    Generare_Sesiune --> Faza1_Sigurante : Spawn Jucători (P1 Room A, P2 Room B)
+    Session_Generation --> Stage1_Fuses : Spawn Players (P1 Room A, P2 Room B)
     
-    Faza1_Sigurante --> Faza15_Sertar : P2 rezolvă panoul electric
-    Faza15_Sertar --> Faza2_Seif : P1 deschide sertarul cu cheia
-    Faza2_Seif --> Faza3_Hacking : [DifficultyAgent evaluează] P1 rezolvă culorile
-    Faza3_Hacking --> Faza4_Evadare : [DifficultyAgent evaluează] P1 sparge firewall-ul
-    Faza4_Evadare --> EndGame : P2 introduce codul pe Numpad
+    Stage1_Fuses --> Stage15_Drawer : P2 solves the electrical panel
+    Stage15_Drawer --> Stage2_Safe : P1 unlocks the drawer with key
+    Stage2_Safe --> Stage3_Hacking : P1 solves color sequence
+    Stage3_Hacking --> Stage4_Escape : P1 bypasses firewall
+    Stage4_Escape --> EndGame : P2 inputs code on Numpad
     
     state EndGame {
-        Afisare_Statistici : Rank S-D, Mistakes, Time
-        Salvare_Backend : Transmitere date scor către SaaS
+        Display_Stats : Rank S-D, Mistakes, Time
+        Backend_Save : Transmit score data to SaaS
     }
     EndGame --> [*]
 ```
 
-## 3. Workflow de Interacțiune (Sequence Diagram)
-Diagrama detaliată pentru "Focus Mode", actualizată pentru a include verificările stricte de rețea (`is_multiplayer_authority`).
+## 3. Interaction Workflow (Sequence Diagram)
 
 ```mermaid
 sequenceDiagram
-    actor Jucator
+    actor Player
     participant PlayerController
     participant MultiplayerAPI
-    participant PuzzleObject as "PuzzleObject (ex: Terminal)"
+    participant PuzzleObject as PuzzleObject (e.g. Terminal)
     participant GameEvents
 
-    Jucator->>PlayerController: Click stânga pe un monitor
+    Player->>PlayerController: Left Click on Monitor
     PlayerController->>MultiplayerAPI: is_multiplayer_authority()?
     
-    alt Client Fără Autoritate
-        MultiplayerAPI-->>PlayerController: False (Ignoră input)
-    else Client Cu Autoritate
+    alt Client Without Authority
+        MultiplayerAPI-->>PlayerController: False (Ignores input)
+    else Client With Authority
         MultiplayerAPI-->>PlayerController: True
-        PlayerController->>PuzzleObject: detectare RayCast
-        PuzzleObject-->>PlayerController: returnează true (has FocusPoint)
-        PlayerController->>PlayerController: enter_focus() (mută camera & eliberează mouse-ul)
+        PlayerController->>PuzzleObject: RayCast Detection
+        PuzzleObject-->>PlayerController: returns true (has FocusPoint)
+        PlayerController->>PlayerController: enter_focus() (moves camera & frees mouse)
         
-        Jucator->>PlayerController: Click pe ecranul 2D
+        Player->>PlayerController: Click on 2D screen
         PlayerController->>PuzzleObject: receive_3d_click(Vector3)
-        PuzzleObject->>PuzzleObject: Emulează click pe butoanele de Control Node
+        PuzzleObject->>PuzzleObject: Emulates click on Control Node buttons
         
-        alt Puzzle Finalizat cu Succes
+        alt Puzzle Completed Successfully
             PuzzleObject->>GameEvents: advance_stage()
         end
     end
 ```
 
-## 4. Arhitectura Sistemului AI (Integrarea cu Ollama & API-uri Externe)
-Această diagramă ilustrează noile direcții ale inteligenței artificiale din proiect: LLM-urile locale (Ollama) care operează prin agenți și generatoarele externe de imagini (PaintingAI).
+## 4. AI System Architecture (Integration with Ollama & External APIs)
 
 ```mermaid
 flowchart TD
     subgraph Godot_Engine ["Godot Engine (Client)"]
-        Game[Evenimente Joc / Acțiuni Jucători]
-        Agent[Agenți: Hint / Saboteur / Difficulty]
-        Actuator[Efecte: Lumini, Sunete, UI, Dificultate]
+        Game[Game Events / Player Actions]
+        Agent[Agents: Hint / Saboteur / Difficulty]
+        Actuator[Effects: Lights, Audio, UI, Difficulty]
         Painting[PaintingAI Node]
     end
 
-    subgraph Ollama_Server ["Ollama (Server Local)"]
+    subgraph Ollama_Server ["Ollama (Local Server)"]
         LLM[LLaMA3:8b]
     end
     
-    subgraph External_APIs ["API-uri Externe"]
+    subgraph External_APIs ["External APIs"]
         Pollinations[Pollinations.ai / DALL-E]
     end
 
-    Game -->|Telemetrie| Agent
+    Game -->|Telemetry| Agent
     Agent -->|HTTP POST JSON| LLM
-    LLM -->|Răspuns JSON| Agent
-    Agent -->|Execută JSON| Actuator
+    LLM -->|JSON Response| Agent
+    Agent -->|Executes JSON| Actuator
     
     Game -->|Init| Painting
     Painting -->|HTTP Request Prompts| Pollinations
     Pollinations -->|Image Bytes| Painting
-    Painting -->|Aplică Textură Material 3D| Game
+    Painting -->|Applies Texture to 3D Material| Game
 ```
 
-## 5. Secvența de Comunicare Agent-LLM (Agent-Sequence Diagram)
-Acțiunile exacte extrase din codul sursă pentru `SaboteurAgent`, ilustrând modul în care generează evenimente asimetrice de groază fără a bloca jocul.
+## 5. Agent-LLM Communication Sequences (Agent-Sequence Diagrams)
 
+### 5.1. HintAgent (On-Demand AI Director)
+```mermaid
+sequenceDiagram
+    actor Player
+    participant Game as Game (GameEvents)
+    participant HintAgent
+    participant Ollama_LLM
+    
+    Player->>Game: Presses 'H' Key (Requests Hint)
+    Game->>HintAgent: _on_hint_requested()
+    
+    HintAgent->>HintAgent: Checks Cooldown (60s)
+    alt Cooldown Active
+        HintAgent-->>Player: Visually displays remaining time
+    else Cooldown Expired
+        HintAgent->>HintAgent: Checks Semaphore (Waits if Saboteur uses LLM)
+        HintAgent->>Game: Extracts Telemetry (Player Positions, Mistakes, Stage)
+        HintAgent->>Ollama_LLM: HTTP POST Async (/api/generate)
+        Ollama_LLM-->>HintAgent: JSON Response: {action: "FLICKER_LIGHTS", hint_text: "..."}
+        HintAgent->>Game: _execute_hint(action)
+        Note right of Game: Actuators: FLICKER_LIGHTS, SHAKE_OBJECT, SPAWN_BLOOD_TEXT
+    end
+```
+
+### 5.2. SaboteurAgent (Asymmetric Horror Director)
 ```mermaid
 sequenceDiagram
     participant Game
     participant SaboteurAgent
     participant Ollama_LLM
     
-    Game->>SaboteurAgent: Crește nivelul de Tensiune (Tension > 0.7)
+    Game->>SaboteurAgent: Increases Tension level (Tension > 0.7)
     
-    loop La fiecare N secunde (Cooldown)
-        SaboteurAgent->>SaboteurAgent: Verifică Cooldown și Semaphore
-        SaboteurAgent->>Game: Solicită Telemetrie (Idle, Panic, Pozitii)
+    loop Every N seconds (Cooldown)
+        SaboteurAgent->>SaboteurAgent: Checks Ollama Semaphore
+        SaboteurAgent->>Game: Requests Telemetry (Idle, Panic, Positions)
         SaboteurAgent->>Ollama_LLM: HTTP POST Async (/api/generate)
         
-        Note over SaboteurAgent,Ollama_LLM: Așteaptă răspuns asincron
-        Ollama_LLM-->>SaboteurAgent: Răspuns JSON: {action: "LIGHT_BLACKOUT", target_player: "Player1"}
+        Ollama_LLM-->>SaboteurAgent: JSON Response: {action: "LIGHT_BLACKOUT", target_player: "Player1"}
         
-        SaboteurAgent->>SaboteurAgent: Parsare Strictă JSON & Protecție
         SaboteurAgent->>Game: _execute_action(action)
-        
-        Note right of Game: Actuatorii Reali din Cod:<br/>- DOOR_SLAM<br/>- LIGHT_BLACKOUT<br/>- PLAYER_ISOLATION<br/>- SPAWN_FAKE_CLUE<br/>- ASYMMETRIC_WHISPER
+        Note right of Game: Actuators: DOOR_SLAM, LIGHT_BLACKOUT, PLAYER_ISOLATION, SPAWN_FAKE_CLUE, ASYMMETRIC_WHISPER
     end
 ```
 
-## 6. Pipeline CI/CD (Workflow)
-Fluxul automatizat prin GitHub Actions, incluzând verificarea noului backend Express.
+### 5.3. DifficultyAgent (Dynamic Difficulty Director)
+```mermaid
+sequenceDiagram
+    participant GameEvents
+    participant DifficultyAgent
+    participant PuzzleGen
+    participant Ollama_LLM
+    
+    GameEvents->>DifficultyAgent: stage_changed (Stage 2 or 3)
+    
+    DifficultyAgent->>DifficultyAgent: Checks Semaphore (Waits for Hint/Saboteur)
+    DifficultyAgent->>DifficultyAgent: Calculates elapsed time and total errors
+    
+    DifficultyAgent->>Ollama_LLM: HTTP POST Async (Performance Evaluation)
+    Ollama_LLM-->>DifficultyAgent: JSON Response: {action: "SCALE_UP", target_stage: 2}
+    
+    DifficultyAgent->>PuzzleGen: _apply_difficulty("SCALE_UP")
+    Note right of PuzzleGen: Modifies solution on-the-fly: e.g. increases PIN from 4 to 6 digits
+```
+
+## 6. CI/CD Pipeline (Workflow)
 
 ```mermaid
 flowchart LR
-    Dev[Dezvoltator] -->|Push / Pull Request| GitHub_Repo[(GitHub Repository)]
+    Dev[Developer] -->|Push / Pull Request| GitHub_Repo[(GitHub Repository)]
     
-    subgraph Pipeline_CICD ["Pipeline CI/CD (GitHub Actions)"]
-        Direction TB
-        BackendTests[npm test pe backend]
-        Linter[gdtoolkit / GDLint pe Godot]
+    subgraph Pipeline_CICD ["CI/CD Pipeline (GitHub Actions)"]
+        direction TB
+        BackendTests[npm test on backend]
+        Linter[gdtoolkit / GDLint on Godot]
         GodotTests[Godot Headless Evals: Hint, Saboteur, Difficulty]
         
         BackendTests --> Linter
@@ -212,42 +248,41 @@ flowchart LR
     end
     
     GitHub_Repo --> Pipeline_CICD
-    GodotTests -->|Build OK| Release([Release / Versiune Stabilă])
+    GodotTests -->|Build OK| Release([Release / Stable Version])
 ```
 
-## 7. Structura Datelor de Joc (Entity Relationship Diagram - ERD)
-Extinderea modelului de date pentru a include logarea la backend-ul SaaS și sincronizarea statisticilor per jucător.
+## 7. Game Data Structure (Entity Relationship Diagram - ERD)
 
 ```mermaid
 erDiagram
-    BACKEND_USER ||--o{ GAME_SESSION : "participă la"
+    BACKEND_USER ||--o{ GAME_SESSION : participates_in
     BACKEND_USER {
         string user_id
         string username
         string password_hash
     }
     
-    GAME_SESSION ||--o{ TELEMETRY : "generează"
+    GAME_SESSION ||--o{ TELEMETRY : generates
     GAME_SESSION {
         string session_id
         float total_time
         string rank
     }
     
-    PLAYER ||--o{ TELEMETRY : "raportează"
+    PLAYER ||--o{ TELEMETRY : reports
     PLAYER {
         string peer_id
         Vector3 position
         float panic_level
     }
     
-    PUZZLE ||--o{ WRONG_ATTEMPT : "înregistrează"
+    PUZZLE ||--o{ WRONG_ATTEMPT : registers
     PUZZLE {
         string puzzle_id
         bool is_solved
     }
     
-    AGENT ||--|{ TELEMETRY : "procesează decizii"
+    AGENT ||--|{ TELEMETRY : processes_decisions
     AGENT {
         string agent_type
         float cooldown
@@ -255,37 +290,36 @@ erDiagram
 ```
 
 ## 8. State Machine - Player Controller
-Automatul de stări (State Machine) extins din codul `PlayerController.gd`, tratând logica de rețea, Walkie-Talkie-ul și comutarea între Focus Mode.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> NETWORK_CHECK : La Spawn
+    [*] --> NETWORK_CHECK : On Spawn
 
     state NETWORK_CHECK {
         [*] --> REMOTE_PEER : Not Authority
         [*] --> LOCAL_PLAYER : Is Authority
     }
 
-    REMOTE_PEER --> [*] : Controller Dezactivat (Doar vizual)
+    REMOTE_PEER --> [*] : Controller Disabled (Visual only)
     LOCAL_PLAYER --> IDLE
 
     IDLE --> MOVING : Input (WASD)
-    MOVING --> IDLE : Lipsă input
+    MOVING --> IDLE : Lack of input
     
-    IDLE --> FOCUSED : Click 3D pe Puzzle
-    MOVING --> FOCUSED : Click 3D pe Puzzle
+    IDLE --> FOCUSED : 3D Click on Puzzle
+    MOVING --> FOCUSED : 3D Click on Puzzle
     
     state FOCUSED {
-        INTERACTING : Jucătorul folosește UI 2D în 3D
-        CAMERA_LOCKED : Mișcarea blocată, mouse vizibil
+        INTERACTING : Player uses 2D UI in 3D space
+        CAMERA_LOCKED : Movement blocked, mouse visible
     }
     
-    FOCUSED --> IDLE : ESC / Click Dreapta / Switch Player (TAB)
+    FOCUSED --> IDLE : ESC / Right Click / Switch Player (TAB)
     
-    IDLE --> TRANSMITTING_RADIO : Tasta 'T' apăsată
-    TRANSMITTING_RADIO --> IDLE : Tasta 'T' eliberată
+    IDLE --> TRANSMITTING_RADIO : 'T' Key pressed
+    TRANSMITTING_RADIO --> IDLE : 'T' Key released
     
     IDLE --> DISABLED : Saboteur Agent (Isolation/Glitch)
     MOVING --> DISABLED : Saboteur Agent
-    DISABLED --> IDLE : Expiră timpul
+    DISABLED --> IDLE : Time expires
 ```

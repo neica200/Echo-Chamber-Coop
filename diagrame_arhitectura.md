@@ -255,38 +255,38 @@ flowchart TD
         PAI[PaintingAI Node]
     end
 
-    subgraph Ollama_Local ["Ollama (localhost:11434)"]
-        LLM[llama3:8b]
+    subgraph Ollama_Local ["Ollama - localhost 11434"]
+        LLM[llama3 8b]
     end
 
     subgraph External ["External APIs"]
-        Poll[Pollinations.ai - free, no key]
-        DALL[OpenAI DALL-E 3 - optional]
+        Poll[Pollinations.ai]
+        DALL[OpenAI DALL-E 3]
     end
 
-    subgraph Backend_SaaS ["Backend SaaS (localhost:3000)"]
+    subgraph Backend_SaaS ["Backend - localhost 3000"]
         Express[Express.js + JWT + bcrypt]
     end
 
-    GE -->|stage_changed, puzzle_solved| HA
-    GE -->|stage_changed, puzzle_solved| SA
+    GE -->|signals| HA
+    GE -->|signals| SA
     GE -->|stage_changed| DA
 
-    HA -->|HTTP POST /api/generate| LLM
-    SA -->|HTTP POST /api/generate| LLM
-    DA -->|HTTP POST /api/generate| LLM
-    LLM -->|JSON response| HA
-    LLM -->|JSON response| SA
-    LLM -->|JSON response| DA
+    HA -->|HTTP POST| LLM
+    SA -->|HTTP POST| LLM
+    DA -->|HTTP POST| LLM
+    LLM -->|JSON| HA
+    LLM -->|JSON| SA
+    LLM -->|JSON| DA
 
-    HA -->|FLICKER_LIGHTS, SHAKE_OBJECT, SPAWN_BLOOD_TEXT| Actuators
-    SA -->|DOOR_SLAM, LIGHT_BLACKOUT, PLAYER_ISOLATION, SPAWN_FAKE_CLUE, FOOTSTEPS, VENTILATION_SHUTDOWN, ASYMMETRIC_WHISPER| Actuators
-    DA -->|SCALE_UP, SCALE_DOWN, KEEP_STANDARD| PG
+    HA -->|hint actuators| Actuators
+    SA -->|scare actuators| Actuators
+    DA -->|SCALE_UP / SCALE_DOWN| PG
 
-    PAI -->|HTTP GET image| Poll
-    PAI -->|HTTP POST images/generations| DALL
-    Poll -->|PNG/JPG bytes| PAI
-    DALL -->|JSON with URL| PAI
+    PAI -->|GET prompt| Poll
+    PAI -->|POST prompt| DALL
+    Poll -->|image bytes| PAI
+    DALL -->|image URL| PAI
 ```
 
 ## 5. Agent-LLM Communication Sequences
@@ -305,55 +305,42 @@ sequenceDiagram
 
     alt Cooldown active
         HA-->>Player: Show remaining time on screen
-    else Cooldown expired
+    else Cooldown expired and Saboteur busy
         HA->>SA: Check _is_waiting_for_ollama
-        alt Saboteur using Ollama
-            HA->>HA: Wait 6s, then check again
-            alt Still busy
-                HA->>HA: Use FALLBACK_HINTS
-            end
-        end
-
-        HA->>HA: Build telemetry (positions, mistakes, distances to puzzle)
-        HA->>HA: Build prompt with STAGE_DETAILS and hint_history
-        HA->>Ollama: HTTP POST (model: llama3:8b, temp: 0.3)
-        Ollama-->>HA: JSON: action + hint_text
-
-        HA->>World: FLICKER_LIGHTS (room lights flicker via CeilingLightLogic)
-        HA->>World: SHAKE_OBJECT (tween shake on puzzle node)
-        HA->>World: SPAWN_BLOOD_TEXT (Label3D on nearest wall, fades after 60s)
+        HA->>HA: Wait 6s then retry or use FALLBACK_HINTS
+    else Cooldown expired and LLM free
+        HA->>HA: Build telemetry and prompt
+        HA->>Ollama: HTTP POST llama3:8b temp 0.3
+        Ollama-->>HA: JSON action + hint_text
+        HA->>World: FLICKER_LIGHTS via CeilingLightLogic
+        HA->>World: SHAKE_OBJECT tween on puzzle node
+        HA->>World: SPAWN_BLOOD_TEXT Label3D on nearest wall
     end
 ```
 
 ### 5.2. SaboteurAgent (Automatic, Timer-Based)
 ```mermaid
 sequenceDiagram
-    participant Timer as Cooldown Timer (45s)
+    participant Timer as CooldownTimer
     participant SA as SaboteurAgent
     participant HA as HintAgent
     participant Ollama as Ollama LLM
     participant World as Game World
 
-    Note over SA: _process() continuously tracks player idle time and tension
+    Note over SA: _process tracks idle time and tension each frame
 
     Timer->>SA: Cooldown expired
-    SA->>HA: Check _is_waiting_for_ollama
+
     alt HintAgent busy
-        SA->>SA: Wait 6s or use fallback
+        SA->>HA: Check _is_waiting_for_ollama
+        SA->>SA: Wait 6s or use FALLBACK_ACTIONS
+    else LLM free
+        SA->>SA: Build telemetry and prompt
+        SA->>Ollama: HTTP POST llama3:8b temp 0.9
+        Ollama-->>SA: JSON action + glitch_text + target_player
+        SA->>World: Execute action
+        Note over World: DOOR_SLAM / FOOTSTEPS / VENTILATION_SHUTDOWN / LIGHT_BLACKOUT / PLAYER_ISOLATION / ASYMMETRIC_WHISPER / SPAWN_FAKE_CLUE
     end
-
-    SA->>SA: Build telemetry (tension, panic, idle times, positions)
-    SA->>Ollama: HTTP POST (model: llama3:8b, temp: 0.9)
-    Ollama-->>SA: JSON: action, glitch_text, fake_clue_content, target_player
-
-    SA->>World: Execute chosen action
-    Note right of World: DOOR_SLAM: 3D audio thud + camera shake
-    Note right of World: FOOTSTEPS: 4 sequential 3D audio steps approaching player
-    Note right of World: VENTILATION_SHUTDOWN: bg music fades out for 10s
-    Note right of World: LIGHT_BLACKOUT: room lights off 6s via GameEvents
-    Note right of World: PLAYER_ISOLATION: is_active=false, overlay 6s, static audio
-    Note right of World: ASYMMETRIC_WHISPER: creepy text shown only to target
-    Note right of World: SPAWN_FAKE_CLUE: physical Note with wrong instructions
 
     SA->>Timer: Restart cooldown
 ```

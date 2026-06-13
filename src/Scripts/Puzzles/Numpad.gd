@@ -29,7 +29,7 @@ func _ready():
 
 # Această funcție e chemată de Buton când e lovit cu raza laser a jucătorului
 func button_pressed(digit: String):
-	if GameEvents.current_stage < 3:
+	if GameEvents.current_stage < 4:
 		print("🔒 [Sistem] Trebuie să obții codul final din Terminal (Faza 3) mai întâi!")
 		return
 		

@@ -5,100 +5,194 @@
 ```mermaid
 classDiagram
     class GameEvents {
-        <<Singleton>>
+        <<Autoload Singleton>>
         +int current_stage
+        +bool lever_1_pulled
+        +bool lever_2_pulled
         +advance_stage()
-        +signal stage_changed(new_stage)
+        +pull_exit_lever(id)
+        +trigger_room_lights_toggled(room_id, state)
+        +trigger_final_exit_opened()
+        +signal stage_changed
+        +signal puzzle_solved
+        +signal room_lights_toggled
+        +signal drawer_opened
+        +signal escape_door_opened
+        +signal final_exit_opened
     }
 
     class PuzzleGen {
-        <<Singleton>>
+        <<Autoload Singleton>>
         +Dictionary active_puzzles
+        +generate_puzzles(seed)
+        +get_puzzle_data(puzzle_id)
+    }
+
+    class GameStats {
+        <<Autoload Singleton>>
+        +float total_time
+        +int total_mistakes
+        +int puzzles_solved
+        +add_mistake()
+        +get_rank() String
+        +get_stats() Dictionary
+    }
+
+    class AudioManager {
+        <<Autoload Singleton>>
+        +play_click()
+        +play_error(volume)
+        +play_success()
+        +play_footstep(is_on_rug)
+    }
+
+    class PBRMaterialManager {
+        <<Autoload Singleton>>
+        +apply_material_to_mesh(node, type)
     }
 
     class NetworkManager {
-        <<Singleton>>
+        <<Autoload Singleton>>
+        +Dictionary players
         +host()
         +join(ip)
+        +spawn_player(id)
     }
-    
+
     class WalkieTalkie {
-        <<Singleton>>
+        <<Autoload Singleton>>
         +bool is_transmitting
+        +start_transmit()
+        +stop_transmit()
         +receive_voice_chunk(bytes)
     }
 
-    class PaintingAI {
-        +bool USE_DALLE
-        +String chosen_prompt
-        -_request_pollinations()
-        -_request_dalle()
-        +sync_prompt(prompt)
-    }
-
     class HintAgent {
-        <<Singleton>>
-        -_call_ollama(prompt)
-        -_execute_hint(action, text)
+        <<Autoload Singleton>>
+        +float hint_cooldown
+        +Dictionary wrong_attempts
+        +register_wrong_attempt(puzzle_type)
     }
 
     class SaboteurAgent {
-        <<Singleton>>
-        -_call_ollama(prompt)
-        -_execute_action(action)
+        <<Autoload Singleton>>
+        +float base_cooldown
+        +register_wrong_attempt(puzzle_type, player)
     }
 
     class DifficultyAgent {
-        <<Singleton>>
-        -_evaluate_difficulty(stage)
-        -_apply_difficulty(stage, decision)
+        <<Autoload Singleton>>
     }
 
-    class BackendServer {
-        <<Node.js / Express>>
-        +POST /auth/register
-        +POST /auth/login
+    class RoomGeneratorAgent {
+        <<Node3D in Scene>>
+        +generate_rooms(seed)
+    }
+
+    class PaintingAI {
+        <<MeshInstance3D in Scene>>
+        +bool USE_DALLE
+        +sync_prompt(prompt)
     }
 
     class PlayerController {
+        <<CharacterBody3D>>
         +bool is_active
         +bool is_focused
+        +Array inventory
         +enter_focus(target)
-        +sync_movement()
+        +exit_focus()
+        +check_interaction()
+        +sync_movement(pos, rot)
     }
 
-    PlayerController --> NetworkManager : P2P Connection
-    PlayerController --> WalkieTalkie : Captures/Sends Voice (Push-to-Talk)
-    PaintingAI --> NetworkManager : RPC Sync Prompt
-    HintAgent --> GameEvents : Listens to signals
-    SaboteurAgent --> HintAgent : Checks Ollama Semaphore
-    DifficultyAgent --> GameEvents : Listens to stage_changed
-    DifficultyAgent --> PuzzleGen : Modifies parameters
+    class BackendServer {
+        <<Express.js Port 3000>>
+        +POST /api/register
+        +POST /api/login
+    }
+
+    class AuthUI {
+        <<Control>>
+    }
+
+    class EndGameScreen {
+        <<Control>>
+        +show_results()
+    }
+
+    HintAgent --> GameEvents : listens stage_changed, drawer_opened
+    SaboteurAgent --> GameEvents : listens stage_changed, puzzle_solved
+    SaboteurAgent --> HintAgent : checks _is_waiting_for_ollama
+    DifficultyAgent --> GameEvents : listens stage_changed
+    DifficultyAgent --> HintAgent : checks _is_waiting_for_ollama
+    DifficultyAgent --> SaboteurAgent : checks _is_waiting_for_ollama
+    DifficultyAgent --> PuzzleGen : modifies active_puzzles
+    PlayerController --> AudioManager : play_footstep
+    PlayerController --> WalkieTalkie : reads transmit state for UI
+    RoomGeneratorAgent --> NetworkManager : reads players for spawn positions
+    RoomGeneratorAgent --> PBRMaterialManager : applies materials
+    RoomGeneratorAgent --> GameEvents : trigger_room_lights_toggled
+    PaintingAI --> NetworkManager : RPC sync_prompt (server-only)
+    GameStats --> GameEvents : listens puzzle_solved, final_exit_opened
+    EndGameScreen --> GameStats : get_stats()
+    AuthUI --> BackendServer : HTTP POST login/register
 ```
 
-## 2. Game Flow (Workflow / State Diagram)
+## 2. Game Flow (State Diagram)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Lobby : Launch Game
-    Lobby --> Session_Generation : Authentication & NetworkManager (Host/Join)
-    
-    state Session_Generation {
-        PaintingAI_Request : Generates AI Painting (Pollinations/DALL-E)
-        Procedural_Gen : Generates Room Layouts
+    [*] --> MainMenu
+
+    MainMenu --> AuthScreen : Login / Register
+    AuthScreen --> Lobby : Auth Success (JWT token)
+    MainMenu --> Lobby : Skip Auth (local)
+
+    Lobby --> RoomGeneration : Host or Join (NetworkManager ENet P2P)
+
+    state RoomGeneration {
+        [*] --> ProceduralGen : RoomGeneratorAgent.generate_rooms(seed)
+        ProceduralGen --> PuzzleGeneration : PuzzleGen.generate_puzzles(seed)
+        PuzzleGeneration --> SpawnPlayers : P1 in RoomA, P2 in RoomB
+        SpawnPlayers --> PaintingGeneration : PaintingAI requests image (host only)
     }
-    
-    Session_Generation --> Stage1_Fuses : Spawn Players (P1 Room A, P2 Room B)
-    
-    Stage1_Fuses --> Stage15_Drawer : P2 solves the electrical panel
-    Stage15_Drawer --> Stage2_Safe : P1 unlocks the drawer with key
-    Stage2_Safe --> Stage3_Hacking : P1 solves color sequence
-    Stage3_Hacking --> Stage4_Escape : P1 bypasses firewall
-    Stage4_Escape --> EndGame : P2 inputs code on Numpad
-    
+
+    RoomGeneration --> Stage1 : RoomA starts DARK, RoomB/Corridor lit
+
+    state Stage1 {
+        [*] --> FuseBox3x3 : P2 solves 3x3 grid in RoomB
+        FuseBox3x3 --> LightsOn : P1 sees pattern on MatrixMonitor in RoomA
+    }
+    Stage1 --> Stage1_5 : advance_stage() -> stage 2
+
+    state Stage1_5 {
+        [*] --> FindKey : P1 finds Desk Key in RoomA
+        FindKey --> OpenDrawer : LockedDrawer opens, reveals color Note
+    }
+    Stage1_5 --> Stage2 : drawer_opened signal
+
+    state Stage2 {
+        [*] --> ColorSequence : P2 inputs colors on ColorButtonsPanel
+        ColorSequence --> SafeOpens : DifficultyAgent may SCALE_UP/DOWN
+    }
+    Stage2 --> Stage3 : advance_stage() -> stage 3
+
+    state Stage3 {
+        [*] --> TerminalHack : P1 inputs FIREWALL, DECRYPT, CORE
+        TerminalHack --> PINRevealed : Terminal shows numpad PIN
+    }
+    Stage3 --> Stage4 : advance_stage() -> stage 4
+
+    state Stage4 {
+        [*] --> NumpadEntry : P2 enters PIN on Numpad (DifficultyAgent may adjust)
+        NumpadEntry --> EscapeDoor : escape_door_opened
+        EscapeDoor --> ExitLevers : Both players pull levers simultaneously (5s window)
+    }
+    Stage4 --> EndGame : final_exit_opened
+
     state EndGame {
-        Display_Stats : Rank S-D, Mistakes, Time
-        Backend_Save : Transmit score data to SaaS
+        [*] --> ShowResults : EndGameScreen with Rank S/A/B/C/D
     }
     EndGame --> [*]
 ```
@@ -108,218 +202,339 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     actor Player
-    participant PlayerController
-    participant MultiplayerAPI
-    participant PuzzleObject as PuzzleObject (e.g. Terminal)
-    participant GameEvents
+    participant PC as PlayerController
+    participant RayCast as Camera3D/RayCast3D
+    participant Puzzle as Puzzle (e.g. Terminal)
+    participant GE as GameEvents
 
-    Player->>PlayerController: Left Click on Monitor
-    PlayerController->>MultiplayerAPI: is_multiplayer_authority()?
-    
-    alt Client Without Authority
-        MultiplayerAPI-->>PlayerController: False (Ignores input)
-    else Client With Authority
-        MultiplayerAPI-->>PlayerController: True
-        PlayerController->>PuzzleObject: RayCast Detection
-        PuzzleObject-->>PlayerController: returns true (has FocusPoint)
-        PlayerController->>PlayerController: enter_focus() (moves camera & frees mouse)
-        
-        Player->>PlayerController: Click on 2D screen
-        PlayerController->>PuzzleObject: receive_3d_click(Vector3)
-        PuzzleObject->>PuzzleObject: Emulates click on Control Node buttons
-        
-        alt Puzzle Completed Successfully
-            PuzzleObject->>GameEvents: advance_stage()
+    Player->>PC: Left Click
+    PC->>PC: check is_active and mouse captured
+
+    alt Mouse not captured
+        PC->>PC: Recapture mouse
+    else Mouse captured
+        PC->>RayCast: force_raycast_update()
+        RayCast-->>PC: collider detected
+
+        alt Collider has pick_up method
+            PC->>Puzzle: pick_up(self)
+            Puzzle->>PC: add_to_inventory(item_name)
+        else Collider has FocusPoint child
+            PC->>PC: enter_focus(target)
+            Note over PC: Camera tweens to FocusPoint position
+            Note over PC: Mouse mode set to VISIBLE
+            Player->>PC: Click in focused mode
+            PC->>Puzzle: receive_3d_click(Vector3)
+            Puzzle->>Puzzle: Maps 3D hit to 2D SubViewport coords
+            Puzzle->>Puzzle: Pushes fake InputEventMouseButton
+
+            alt Puzzle solved
+                Puzzle->>GE: advance_stage()
+                GE->>GE: RPC broadcast_stage_changed to all peers
+            end
+
+            Player->>PC: ESC or Right Click
+            PC->>PC: exit_focus() (camera tweens back)
+        else Collider has interact method
+            PC->>Puzzle: interact()
         end
     end
 ```
 
-## 4. AI System Architecture (Integration with Ollama & External APIs)
+## 4. AI System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Godot_Engine ["Godot Engine (Client)"]
-        Game[Game Events / Player Actions]
-        Agent[Agents: Hint / Saboteur / Difficulty]
-        Actuator[Effects: Lights, Audio, UI, Difficulty]
-        Painting[PaintingAI Node]
+    subgraph Godot_Client ["Godot Engine (Client)"]
+        GE[GameEvents Singleton]
+        HA[HintAgent]
+        SA[SaboteurAgent]
+        DA[DifficultyAgent]
+        PG[PuzzleGen]
+        Actuators[Physical Actuators]
+        PAI[PaintingAI Node]
     end
 
-    subgraph Ollama_Server ["Ollama (Local Server)"]
-        LLM[LLaMA3:8b]
-    end
-    
-    subgraph External_APIs ["External APIs"]
-        Pollinations[Pollinations.ai / DALL-E]
+    subgraph Ollama_Local ["Ollama (localhost:11434)"]
+        LLM[llama3:8b]
     end
 
-    Game -->|Telemetry| Agent
-    Agent -->|HTTP POST JSON| LLM
-    LLM -->|JSON Response| Agent
-    Agent -->|Executes JSON| Actuator
-    
-    Game -->|Init| Painting
-    Painting -->|HTTP Request Prompts| Pollinations
-    Pollinations -->|Image Bytes| Painting
-    Painting -->|Applies Texture to 3D Material| Game
+    subgraph External ["External APIs"]
+        Poll[Pollinations.ai - free, no key]
+        DALL[OpenAI DALL-E 3 - optional]
+    end
+
+    subgraph Backend_SaaS ["Backend SaaS (localhost:3000)"]
+        Express[Express.js + JWT + bcrypt]
+    end
+
+    GE -->|stage_changed, puzzle_solved| HA
+    GE -->|stage_changed, puzzle_solved| SA
+    GE -->|stage_changed| DA
+
+    HA -->|HTTP POST /api/generate| LLM
+    SA -->|HTTP POST /api/generate| LLM
+    DA -->|HTTP POST /api/generate| LLM
+    LLM -->|JSON response| HA
+    LLM -->|JSON response| SA
+    LLM -->|JSON response| DA
+
+    HA -->|FLICKER_LIGHTS, SHAKE_OBJECT, SPAWN_BLOOD_TEXT| Actuators
+    SA -->|DOOR_SLAM, LIGHT_BLACKOUT, PLAYER_ISOLATION, SPAWN_FAKE_CLUE, FOOTSTEPS, VENTILATION_SHUTDOWN, ASYMMETRIC_WHISPER| Actuators
+    DA -->|SCALE_UP, SCALE_DOWN, KEEP_STANDARD| PG
+
+    PAI -->|HTTP GET image| Poll
+    PAI -->|HTTP POST images/generations| DALL
+    Poll -->|PNG/JPG bytes| PAI
+    DALL -->|JSON with URL| PAI
 ```
 
-## 5. Agent-LLM Communication Sequences (Agent-Sequence Diagrams)
+## 5. Agent-LLM Communication Sequences
 
-### 5.1. HintAgent (On-Demand AI Director)
+### 5.1. HintAgent (On-Demand, Key H)
 ```mermaid
 sequenceDiagram
     actor Player
-    participant Game as Game (GameEvents)
-    participant HintAgent
-    participant Ollama_LLM
-    
-    Player->>Game: Presses 'H' Key (Requests Hint)
-    Game->>HintAgent: _on_hint_requested()
-    
-    HintAgent->>HintAgent: Checks Cooldown (60s)
-    alt Cooldown Active
-        HintAgent-->>Player: Visually displays remaining time
-    else Cooldown Expired
-        HintAgent->>HintAgent: Checks Semaphore (Waits if Saboteur uses LLM)
-        HintAgent->>Game: Extracts Telemetry (Player Positions, Mistakes, Stage)
-        HintAgent->>Ollama_LLM: HTTP POST Async (/api/generate)
-        Ollama_LLM-->>HintAgent: JSON Response: {action: "FLICKER_LIGHTS", hint_text: "..."}
-        HintAgent->>Game: _execute_hint(action)
-        Note right of Game: Actuators: FLICKER_LIGHTS, SHAKE_OBJECT, SPAWN_BLOOD_TEXT
+    participant HA as HintAgent
+    participant SA as SaboteurAgent
+    participant Ollama as Ollama LLM
+    participant World as Game World
+
+    Player->>HA: Presses H key
+    HA->>HA: Check cooldown (60s)
+
+    alt Cooldown active
+        HA-->>Player: Show remaining time on screen
+    else Cooldown expired
+        HA->>SA: Check _is_waiting_for_ollama
+        alt Saboteur using Ollama
+            HA->>HA: Wait 6s, then check again
+            alt Still busy
+                HA->>HA: Use FALLBACK_HINTS
+            end
+        end
+
+        HA->>HA: Build telemetry (positions, mistakes, distances to puzzle)
+        HA->>HA: Build prompt with STAGE_DETAILS and hint_history
+        HA->>Ollama: HTTP POST (model: llama3:8b, temp: 0.3)
+        Ollama-->>HA: JSON: action + hint_text
+
+        HA->>World: FLICKER_LIGHTS (room lights flicker via CeilingLightLogic)
+        HA->>World: SHAKE_OBJECT (tween shake on puzzle node)
+        HA->>World: SPAWN_BLOOD_TEXT (Label3D on nearest wall, fades after 60s)
     end
 ```
 
-### 5.2. SaboteurAgent (Asymmetric Horror Director)
+### 5.2. SaboteurAgent (Automatic, Timer-Based)
 ```mermaid
 sequenceDiagram
-    participant Game
-    participant SaboteurAgent
-    participant Ollama_LLM
-    
-    Game->>SaboteurAgent: Increases Tension level (Tension > 0.7)
-    
-    loop Every N seconds (Cooldown)
-        SaboteurAgent->>SaboteurAgent: Checks Ollama Semaphore
-        SaboteurAgent->>Game: Requests Telemetry (Idle, Panic, Positions)
-        SaboteurAgent->>Ollama_LLM: HTTP POST Async (/api/generate)
-        
-        Ollama_LLM-->>SaboteurAgent: JSON Response: {action: "LIGHT_BLACKOUT", target_player: "Player1"}
-        
-        SaboteurAgent->>Game: _execute_action(action)
-        Note right of Game: Actuators: DOOR_SLAM, LIGHT_BLACKOUT, PLAYER_ISOLATION, SPAWN_FAKE_CLUE, ASYMMETRIC_WHISPER
+    participant Timer as Cooldown Timer (45s)
+    participant SA as SaboteurAgent
+    participant HA as HintAgent
+    participant Ollama as Ollama LLM
+    participant World as Game World
+
+    Note over SA: _process() continuously tracks player idle time and tension
+
+    Timer->>SA: Cooldown expired
+    SA->>HA: Check _is_waiting_for_ollama
+    alt HintAgent busy
+        SA->>SA: Wait 6s or use fallback
+    end
+
+    SA->>SA: Build telemetry (tension, panic, idle times, positions)
+    SA->>Ollama: HTTP POST (model: llama3:8b, temp: 0.9)
+    Ollama-->>SA: JSON: action, glitch_text, fake_clue_content, target_player
+
+    SA->>World: Execute chosen action
+    Note right of World: DOOR_SLAM: 3D audio thud + camera shake
+    Note right of World: FOOTSTEPS: 4 sequential 3D audio steps approaching player
+    Note right of World: VENTILATION_SHUTDOWN: bg music fades out for 10s
+    Note right of World: LIGHT_BLACKOUT: room lights off 6s via GameEvents
+    Note right of World: PLAYER_ISOLATION: is_active=false, overlay 6s, static audio
+    Note right of World: ASYMMETRIC_WHISPER: creepy text shown only to target
+    Note right of World: SPAWN_FAKE_CLUE: physical Note with wrong instructions
+
+    SA->>Timer: Restart cooldown
+```
+
+### 5.3. DifficultyAgent (Triggered at Stage 2 and 3)
+```mermaid
+sequenceDiagram
+    participant GE as GameEvents
+    participant DA as DifficultyAgent
+    participant HA as HintAgent
+    participant SA as SaboteurAgent
+    participant Ollama as Ollama LLM
+    participant PG as PuzzleGen
+
+    GE->>DA: stage_changed(2) or stage_changed(3)
+
+    loop Wait until LLM free
+        DA->>HA: Check _is_waiting_for_ollama
+        DA->>SA: Check _is_waiting_for_ollama
+    end
+
+    DA->>DA: Calculate elapsed time and total mistakes from HintAgent
+    DA->>Ollama: HTTP POST (model: llama3:8b, temp: 0.1)
+    Ollama-->>DA: JSON: action (SCALE_UP / SCALE_DOWN / KEEP_STANDARD)
+
+    alt SCALE_UP at Stage 2
+        DA->>PG: Extend color_sequence from 4 to 6 colors
+    else SCALE_DOWN at Stage 2
+        DA->>PG: Reduce color_sequence from 4 to 3 colors
+    else SCALE_UP at Stage 3
+        DA->>PG: Change numpad PIN from 4 to 6 digits
+    else SCALE_DOWN at Stage 3
+        DA->>PG: Change numpad PIN from 4 to 3 digits
     end
 ```
 
-### 5.3. DifficultyAgent (Dynamic Difficulty Director)
-```mermaid
-sequenceDiagram
-    participant GameEvents
-    participant DifficultyAgent
-    participant PuzzleGen
-    participant Ollama_LLM
-    
-    GameEvents->>DifficultyAgent: stage_changed (Stage 2 or 3)
-    
-    DifficultyAgent->>DifficultyAgent: Checks Semaphore (Waits for Hint/Saboteur)
-    DifficultyAgent->>DifficultyAgent: Calculates elapsed time and total errors
-    
-    DifficultyAgent->>Ollama_LLM: HTTP POST Async (Performance Evaluation)
-    Ollama_LLM-->>DifficultyAgent: JSON Response: {action: "SCALE_UP", target_stage: 2}
-    
-    DifficultyAgent->>PuzzleGen: _apply_difficulty("SCALE_UP")
-    Note right of PuzzleGen: Modifies solution on-the-fly: e.g. increases PIN from 4 to 6 digits
-```
-
-## 6. CI/CD Pipeline (Workflow)
+## 6. CI/CD Pipeline
 
 ```mermaid
-flowchart LR
-    Dev[Developer] -->|Push / Pull Request| GitHub_Repo[(GitHub Repository)]
-    
-    subgraph Pipeline_CICD ["CI/CD Pipeline (GitHub Actions)"]
+flowchart TD
+    subgraph Trigger ["Trigger"]
+        Push[Push to main/master]
+        PR[Pull Request to main/master]
+    end
+
+    subgraph CI_Pipeline ["CI Pipeline (ci.yml)"]
         direction TB
-        BackendTests[npm test on backend]
-        Linter[gdtoolkit / GDLint on Godot]
-        GodotTests[Godot Headless Evals: Hint, Saboteur, Difficulty]
-        
-        BackendTests --> Linter
-        Linter --> GodotTests
+        subgraph Backend_CI ["Job: backend-ci"]
+            Checkout1[Checkout]
+            NodeSetup[Setup Node.js 20.x]
+            NpmInstall[npm install]
+            Checkout1 --> NodeSetup --> NpmInstall
+        end
+
+        subgraph Frontend_CI ["Job: frontend-ci"]
+            Checkout2[Checkout]
+            CheckProject[Verify src/project.godot exists]
+            Python[Setup Python 3.10]
+            GDToolkit[pip install gdtoolkit]
+            Lint[gdlint src/Scripts/]
+            SetupGodot[Setup Godot 4.2.1 headless]
+            EvalHint[eval_hint_agent.gd]
+            EvalSaboteur[eval_saboteur_agent.gd]
+            EvalDifficulty[eval_difficulty_agent.gd]
+            Checkout2 --> CheckProject --> Python --> GDToolkit --> Lint --> SetupGodot --> EvalHint --> EvalSaboteur --> EvalDifficulty
+        end
     end
-    
-    GitHub_Repo --> Pipeline_CICD
-    GodotTests -->|Build OK| Release([Release / Stable Version])
+
+    subgraph CD_Pipeline ["CD Pipeline (cd.yml)"]
+        direction TB
+        BuildBackend[Package backend to build/backend]
+        BuildGame[Copy src/ to build/game]
+        Upload[Upload artifact: echo-chamber-production-build]
+        BuildBackend --> BuildGame --> Upload
+    end
+
+    Push --> CI_Pipeline
+    PR --> CI_Pipeline
+    Push --> CD_Pipeline
+    PR --> CD_Pipeline
 ```
 
-## 7. Game Data Structure (Entity Relationship Diagram - ERD)
+## 7. Game Data Structure (ERD)
 
 ```mermaid
 erDiagram
-    BACKEND_USER ||--o{ GAME_SESSION : participates_in
     BACKEND_USER {
-        string user_id
-        string username
+        string username PK
         string password_hash
     }
-    
-    GAME_SESSION ||--o{ TELEMETRY : generates
+
     GAME_SESSION {
-        string session_id
+        int seed
+        float start_time
+        float end_time
         float total_time
+        int total_mistakes
+        int puzzles_solved
         string rank
     }
-    
-    PLAYER ||--o{ TELEMETRY : reports
+
+    PUZZLE {
+        string puzzle_id PK
+        string type
+        string solution
+        string clue_room
+        string lock_room
+    }
+
     PLAYER {
-        string peer_id
+        string name PK
         Vector3 position
         float panic_level
+        float idle_time
+        bool is_active
     }
-    
-    PUZZLE ||--o{ WRONG_ATTEMPT : registers
-    PUZZLE {
-        string puzzle_id
-        bool is_solved
+
+    AGENT_STATE {
+        string agent_name PK
+        bool is_waiting_for_ollama
+        float cooldown_remaining
+        float tension
     }
-    
-    AGENT ||--|{ TELEMETRY : processes_decisions
-    AGENT {
-        string agent_type
-        float cooldown
+
+    TELEMETRY_SNAPSHOT {
+        float stage
+        float tension
+        float p1_panic
+        float p2_panic
+        float p1_idle_seconds
+        float p2_idle_seconds
     }
+
+    GAME_SESSION ||--|{ PUZZLE : generates_via_PuzzleGen
+    GAME_SESSION ||--|| PLAYER : has_Player1
+    GAME_SESSION ||--|| PLAYER : has_Player2
+    AGENT_STATE ||--o{ TELEMETRY_SNAPSHOT : reads_at_each_cycle
+    PUZZLE ||--o{ TELEMETRY_SNAPSHOT : referenced_by
+    BACKEND_USER ||--o{ GAME_SESSION : authenticates_for
 ```
 
 ## 8. State Machine - Player Controller
 
 ```mermaid
 stateDiagram-v2
-    [*] --> NETWORK_CHECK : On Spawn
+    [*] --> IDLE : Player spawns with is_active=true
 
-    state NETWORK_CHECK {
-        [*] --> REMOTE_PEER : Not Authority
-        [*] --> LOCAL_PLAYER : Is Authority
-    }
+    IDLE --> MOVING : WASD input detected
+    MOVING --> IDLE : No movement input
 
-    REMOTE_PEER --> [*] : Controller Disabled (Visual only)
-    LOCAL_PLAYER --> IDLE
+    IDLE --> FOCUSED : Left Click hits object with FocusPoint
+    MOVING --> FOCUSED : Left Click hits object with FocusPoint
 
-    IDLE --> MOVING : Input (WASD)
-    MOVING --> IDLE : Lack of input
-    
-    IDLE --> FOCUSED : 3D Click on Puzzle
-    MOVING --> FOCUSED : 3D Click on Puzzle
-    
     state FOCUSED {
-        INTERACTING : Player uses 2D UI in 3D space
-        CAMERA_LOCKED : Movement blocked, mouse visible
+        [*] --> CAMERA_TWEENING : Camera moves to FocusPoint
+        CAMERA_TWEENING --> PUZZLE_INTERACTION : Tween complete
+        PUZZLE_INTERACTION : Mouse visible, player clicks 2D UI in 3D
     }
-    
-    FOCUSED --> IDLE : ESC / Right Click / Switch Player (TAB)
-    
-    IDLE --> TRANSMITTING_RADIO : 'T' Key pressed
-    TRANSMITTING_RADIO --> IDLE : 'T' Key released
-    
-    IDLE --> DISABLED : Saboteur Agent (Isolation/Glitch)
-    MOVING --> DISABLED : Saboteur Agent
-    DISABLED --> IDLE : Time expires
+
+    FOCUSED --> IDLE : ESC or Right Click (camera tweens back)
+
+    IDLE --> PICKUP : Left Click hits object with pick_up method
+    PICKUP --> IDLE : Item added to inventory
+
+    IDLE --> TRANSMITTING : Hold T key (WalkieTalkie)
+    TRANSMITTING --> IDLE : Release T key
+
+    IDLE --> ISOLATED : SaboteurAgent PLAYER_ISOLATION
+    MOVING --> ISOLATED : SaboteurAgent PLAYER_ISOLATION
+
+    state ISOLATED {
+        [*] --> LOCKED : is_active set to false
+        LOCKED : Black overlay with glitch text, static audio
+    }
+
+    ISOLATED --> IDLE : 6 seconds expire, is_active restored
+
+    IDLE --> INACTIVE : TAB pressed (singleplayer) or not multiplayer authority
+    INACTIVE --> IDLE : TAB pressed back or authority regained
+
+    state INACTIVE {
+        [*] --> WAITING : is_active=false, camera not current
+    }
 ```

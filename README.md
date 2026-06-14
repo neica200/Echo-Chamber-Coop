@@ -3,6 +3,8 @@
 ## 🚀 Project Overview
 **Echo Chamber** is a cooperative, horror-themed escape room experience developed as a Software-as-a-Service (SaaS). The game leverages a complex system of **Intelligent Agents** to generate a unique experience for every session, forcing players to collaborate through asymmetric communication and real-time coordination.
 
+## 🚀 Demo offline: https://youtu.be/2wJiNBIspg0
+
 ## 🧩 Game Components & Puzzles
 The project is built using the **Godot 4 Engine** for the client and a **Node.js/Express** backend for SaaS functionalities.
 

@@ -38,11 +38,13 @@ Pentru partea mea din proiect, m-am ocupat de "creierul" jocului, mai exact de i
 - **Tuning fin pe modelele LLM:** M-am jucat destul de mult cu temperatura din setarile HTTP. Am ajuns la concluzia ca merge cel mai bine cu 0.9 la Saboteur (sa fie mai imprevizibil), 0.3 la Hint (sa fie precis) si 0.1 la DifficultyAgent.
 - **Curatarea JSON-urilor:** Am implementat manual filtre de protectie pe `JSON.parse_string()`. LLM-ul uneori mai adauga caractere aiurea sau ghilimele gresite si imi dadea crash tot jocul, asa ca a trebuit sa ma asigur ca parsez mereu o structura curata.
 
-### [Nume Membru 3] (Completare necesară)
-*Descrie aici cum ai folosit tool-urile de AI. Exemple:*
-- *Generarea de efecte sonore sau muzică ambientală folosind AI audio.*
-- *Crearea design-ului interfețelor (UI/UX) cu asistenți de design.*
-- *Testare și validare de cod.*
+### Andreea (Level Design, Generare Procedurală și Depanare UI/UX)
+În cadrul dezvoltării, am utilizat asistentul AI agentic ca partener direct de codare (pair-programming) pentru a accelera implementarea mecanicilor complexe din Godot și pentru a finisa aspectul nivelurilor:
+- **Proiectare Generare Procedurală (Core):** Am construit arhitectura de bază pentru generarea camerelor (`RoomGeneratorAgent.gd`), implementând definirea grid-ului și plasarea manuală a modelelor 3D fundamentale (precum biroul, scaunul și setup-ul inițial al calculatorului), creând un mediu solid pe care au fost construite ulterior restul mecanicilor.
+- **Level Design și Integrare Puzzle-uri:** Am folosit AI-ul pentru a modifica arhitectura procedurală a nivelurilor, ajustând proporțiile camerelor (ex. îngustarea coridorului de trecere) și plasând exact elementele pentru puzzle-ul final (poziționarea manetelor sincronizate pentru `ExitDoor`).
+- **Generare Procedurală (Wave Function Collapse):** Am dezvoltat, cu ajutorul asistentului, un algoritm *Wave Function Collapse* scris complet în GDScript de la zero (`WFCTextureGenerator.gd`). Acesta calculează entropia minimă și propagă stări pentru a genera o textură unică (tip "Dungeon Stone") la fiecare rulare a jocului, care este apoi aplicată dinamic pe tavan.
+- **Depanare UI/UX (Overlap în Split-Screen):** AI-ul m-a ajutat să depistez un bug vizual subtil în care inventarele jucătorilor se suprapuneau din cauza creării multiple de noduri `CanvasLayer` în modul de testare locală. Am rezolvat problema adăugând un sistem de toggle vizual bazat pe parametrul `is_active`.
+- **Refactoring:** Eliminarea prop-urilor statice (notițele scrise de mână) pentru a forța jucătorii să interacționeze direct cu mecanicile complexe (Terminalul PC și Seiful).
 
 ### [Nume Membru 4] (Dacă este cazul - Completare necesară)
 *Descrie aici cum ai folosit tool-urile de AI.*

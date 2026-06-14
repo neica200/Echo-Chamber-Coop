@@ -46,8 +46,18 @@ Pentru partea mea din proiect, m-am ocupat de "creierul" jocului, mai exact de i
 - **Depanare UI/UX (Overlap în Split-Screen):** AI-ul m-a ajutat să depistez un bug vizual subtil în care inventarele jucătorilor se suprapuneau din cauza creării multiple de noduri `CanvasLayer` în modul de testare locală. Am rezolvat problema adăugând un sistem de toggle vizual bazat pe parametrul `is_active`.
 - **Refactoring:** Eliminarea prop-urilor statice (notițele scrise de mână) pentru a forța jucătorii să interacționeze direct cu mecanicile complexe (Terminalul PC și Seiful).
 
-### [Nume Membru 4] (Dacă este cazul - Completare necesară)
-*Descrie aici cum ai folosit tool-urile de AI.*
+### Melysa (SaaS, Backend & UI/UX)
+În rolul meu de dezvoltator SaaS, m-am ocupat de infrastructura de autentificare, sistemul de networking multiplayer și integrarea serviciilor externe în joc. Am folosit AI ca asistent tehnic de-a lungul întregului proces de dezvoltare.
+
+**Cum m-a ajutat AI-ul:**
+- **Arhitectura serverului Node.js:** Am folosit AI-ul pentru a structura rapid rutele REST (`/register`, `/login`) cu Express.js, inclusiv hasharea parolelor cu bcrypt și generarea token-urilor JWT. AI-ul m-a ghidat pas cu pas prin configurarea middleware-ului și testarea cu PowerShell când Postman nu funcționa pe localhost.
+- **Sistemul de Lobby Multiplayer:** AI-ul m-a ajutat să înțeleg și să implementez `ENetMultiplayerPeer` în Godot 4, inclusiv logica de host/join și schimbarea automată a scenei când ambii jucători se conectează prin `NetworkManager.gd`.
+- **State Replication:** Am folosit AI-ul pentru a integra `MultiplayerSynchronizer` pe scena playerului și pentru a adăuga verificarea `is_multiplayer_authority()` în `PlayerController.gd`, astfel încât fiecare jucător să controleze doar propriul personaj.
+- **Walkie-Talkie Audio:** AI-ul m-a ajutat să construiesc un sistem de voice chat push-to-talk cu `AudioStreamMicrophone`, transmisie RPC în chunks de 100ms și un bus audio „Radio" cu efecte în lanț (EQ6 + Distortion + Reverb + Compressor) pentru a simula vocea printr-o stație radio.
+- **PaintingAI:** Am folosit AI-ul pentru a integra API-ul Pollinations.ai (gratuit, fără cheie) și DALL-E (opțional) pentru generarea unui indiciu vizual unic pe tabloul din cameră la fiecare sesiune. AI-ul m-a ajutat să implementez sincronizarea promptului ales între jucători via RPC.
+- **Integrarea Login în Godot:** AI-ul m-a ghidat în crearea scenei `MainMenu.tscn` cu noduri UI (LineEdit, Button) și scriptul `AuthUI.gd` care trimite request-uri HTTP către serverul Node.js și procesează token-ul JWT primit.
+- **EndGame Analytics Screen:** AI-ul m-a ajutat să construiesc ecranul de final cu sistem de rank S-D bazat pe timp și greșeli, calcul scor 0-100, animații Tween (fade-in panel + bounce pe litera de rank) și mesaje de feedback unice per rank. Ecranul se conectează automat la `GameEvents.escape_door_opened` și afișează statisticile finale ambilor jucători.
+- **GameStats.gd:** Am integrat un sistem de tracking al statisticilor în timp real — timer pornit la începutul sesiunii, contorizarea greșelilor la numpad și a puzzle-urilor rezolvate, cu calculul automat al rank-ului la final prin funcția `get_stats()`.
 
 ---
 
